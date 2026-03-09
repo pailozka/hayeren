@@ -17,7 +17,8 @@ function init() {
   // Sync learned count display
   saveLearnedLetters(learnedLetters);
 
-  // Restore today's task completion states
+  // Initialize day view and restore completion states
+  switchDay(1);
   initDailyTaskStates();
 }
 
