@@ -5,19 +5,602 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Հայերեն — Armenian Learning</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0d0a;
+    --surface: #1a1713;
+    --surface2: #242019;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: #7a6330;
+    --red: #c94c4c;
+    --text: #f0e8d8;
+    --text-muted: #8a7e6a;
+    --border: #2e2820;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(15,13,10,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+  }
+  .nav-logo span { color: var(--text-muted); font-style: italic; font-size: 0.85rem; margin-left: 0.5rem; }
+  .nav-tabs { display: flex; gap: 0.25rem; }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--surface); }
+  .tab-btn.active { color: var(--gold); background: var(--surface2); }
+
+  /* PANELS */
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ======= DAILY PLAN ======= */
+  .hero {
+    padding: 3rem 2.5rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero-left h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .hero-left h1 em { color: var(--gold); font-style: italic; }
+  .hero-left p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; max-width: 380px; margin-top: 0.75rem; }
+
+  .streak-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .streak-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .streak-num { font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--gold); line-height: 1; }
+  .streak-num span { font-size: 1rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; margin-left: 0.3rem; }
+  .week-dots { display: flex; gap: 0.5rem; }
+  .day-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); border: 1px solid var(--border); }
+  .day-dot.done { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 500; }
+  .day-dot.today { border-color: var(--gold); color: var(--gold); }
+
+  /* Daily schedule */
+  .schedule-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2.5rem 3rem;
+  }
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .schedule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+
+  .schedule-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .schedule-card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+  .schedule-card.done { border-color: var(--gold); opacity: 0.7; }
+  .schedule-card.done::after { content: '✓'; position: absolute; top: 1rem; right: 1rem; color: var(--gold); font-size: 1.1rem; }
+
+  .card-time { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gold-dim); margin-bottom: 0.5rem; }
+  .card-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.4rem; }
+  .card-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+  .card-duration {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+  }
+  .card-accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 10px 0 0 10px; }
+  .accent-gold { background: var(--gold); }
+  .accent-red { background: var(--red); }
+  .accent-blue { background: #4c7bc9; }
+  .accent-green { background: #5ca87a; }
+
+  /* ======= ALPHABET ======= */
+  .alphabet-section { max-width: 1100px; margin: 0 auto; padding: 2.5rem; }
+  .alpha-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; }
+  .alpha-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--text); }
+  .alpha-header p { color: var(--text-muted); font-size: 0.85rem; }
+  .week-selector { display: flex; gap: 0.5rem; }
+  .wk-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .wk-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+  .letter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; }
+
+  .letter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+  }
+  .letter-card:hover { border-color: var(--gold-dim); background: var(--surface2); }
+  .letter-card.learned { border-color: var(--gold); }
+  .letter-card.active-card { border-color: var(--gold); background: var(--surface2); transform: scale(1.05); box-shadow: 0 0 20px rgba(201,168,76,0.15); }
+  .letter-card.locked { opacity: 0.35; cursor: default; }
+
+  .armenian-char { font-size: 2.2rem; line-height: 1.2; color: var(--gold); font-weight: 400; }
+  .latin-trans { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+  .letter-name { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+  .learned-dot { position: absolute; top: 0.5rem; right: 0.5rem; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  /* Letter detail */
+  .letter-detail {
+    background: var(--surface);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .letter-detail.visible { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; }
+  .detail-char { font-size: 6rem; color: var(--gold); font-family: 'Playfair Display', serif; line-height: 1; }
+  .detail-info h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 0.5rem; }
+  .detail-info p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; }
+  .detail-words { }
+  .detail-words h4 { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 0.75rem; }
+  .word-item { margin-bottom: 0.5rem; }
+  .word-arm { font-size: 1rem; color: var(--text); }
+  .word-eng { font-size: 0.78rem; color: var(--text-muted); }
+  .mark-btn {
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: opacity 0.2s;
+  }
+  .mark-btn:hover { opacity: 0.85; }
+
+  /* ======= QUIZ ======= */
+  .quiz-section { max-width: 700px; margin: 0 auto; padding: 2.5rem; }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .quiz-top h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+  .quiz-score { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--gold); }
+
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  .quiz-prompt { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; }
+  .quiz-char { font-size: 5rem; color: var(--gold); line-height: 1; margin-bottom: 0.5rem; }
+  .quiz-subtext { font-size: 0.85rem; color: var(--text-muted); }
+
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .quiz-opt {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--gold-dim); background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(92,168,122,0.15); border-color: #5ca87a; color: #5ca87a; }
+  .quiz-opt.wrong { background: rgba(201,76,76,0.15); border-color: var(--red); color: var(--red); }
+  .quiz-opt:disabled { cursor: default; }
+
+  .next-btn {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s;
+    display: none;
+  }
+  .next-btn.visible { display: block; }
+  .next-btn:hover { background: var(--gold); color: var(--bg); }
+
+  .progress-bar-wrap { background: var(--surface); border-radius: 99px; height: 4px; margin-bottom: 2rem; }
+  .progress-bar-fill { background: var(--gold); height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+
+  /* ======= RESOURCES ======= */
+  .resources-section { max-width: 900px; margin: 0 auto; padding: 2.5rem; }
+  .resources-section h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .resources-section > p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
+
+  .resource-group { margin-bottom: 2rem; }
+  .resource-group-title { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+  .resource-group-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .resource-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+  .resource-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .resource-item:hover { border-color: var(--gold-dim); }
+  .resource-item h4 { font-size: 0.9rem; margin-bottom: 0.3rem; }
+  .resource-item p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+  .resource-tag { display: inline-block; font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--gold-dim); background: var(--surface2); padding: 0.15rem 0.4rem; border-radius: 3px; margin-top: 0.5rem; }
+
+  /* Tip box */
+  .tip-box {
+    background: var(--surface);
+    border-left: 3px solid var(--gold);
+    padding: 1rem 1.25rem;
+    border-radius: 0 8px 8px 0;
+    margin-top: 2rem;
+  }
+  .tip-box p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+  .tip-box strong { color: var(--gold); }
+
+  /* Day switcher */
+  .day-switch-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-switch-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+  .day-switch-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 500; }
+
+  /* ======= SESSION BLOCKS ======= */
+  .session-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .session-block.completed { border-color: var(--gold); opacity: 0.8; }
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.1rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .session-header:hover { background: var(--surface2); }
+  .session-header-left { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .session-header-right { display: flex; align-items: center; gap: 0.75rem; }
+  .session-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+  .session-tag.gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .session-tag.blue { background: rgba(76,123,201,0.15); color: #4c7bc9; }
+  .session-tag.green { background: rgba(92,168,122,0.15); color: #5ca87a; }
+  .session-tag.red { background: rgba(201,76,76,0.15); color: var(--red); }
+  .session-meta { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text-muted); }
+  .session-title-main { font-size: 0.95rem; font-weight: 500; color: var(--text); }
+  .session-done-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid var(--gold-dim);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    display: none;
+  }
+  .session-done-badge.visible { display: inline-block; }
+  .session-chevron { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.2s; }
+  .session-chevron.open { transform: rotate(180deg); }
+  .session-body { padding: 0 1.5rem 1.5rem; display: none; }
+  .session-body.open { display: block; animation: fadeIn 0.2s ease; }
+  .session-intro { color: var(--text-muted); font-size: 0.85rem; line-height: 1.65; margin-bottom: 1.25rem; }
+
+  /* Letter lesson cards */
+  .letter-lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
+  .ll-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+  }
+  .ll-big { font-size: 3.5rem; color: var(--gold); line-height: 1; }
+  .ll-small { font-size: 1.5rem; color: var(--gold-dim); margin-top: 0.1rem; }
+  .ll-name { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 0.4rem; text-transform: uppercase; }
+  .ll-sound { font-size: 0.82rem; color: var(--text); margin-top: 0.4rem; }
+  .ll-sound em { font-style: normal; }
+  .ll-sound u { text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 2px; }
+  .ll-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.5; text-align: left; }
+
+  /* Exercise blocks */
+  .exercise-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .exercise-title { font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text); }
+  .exercise-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.75rem; }
+
+  /* Writing boxes */
+  .write-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .write-model { font-size: 1.8rem; color: var(--gold); min-width: 30px; }
+  .write-box {
+    width: 42px; height: 42px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 1.3rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .write-box:focus { border-color: var(--gold); }
+  .write-box.wide { width: 54px; }
+
+  /* Flash cards */
+  .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.6rem; }
+  .flash-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .flash-card:hover { border-color: var(--gold-dim); }
+  .flash-front { font-size: 2.2rem; color: var(--gold); }
+  .flash-back { display: none; font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--gold); text-align: center; padding: 0.3rem; }
+  .flash-card.flipped .flash-front { display: none; }
+  .flash-card.flipped .flash-back { display: block; }
+
+  /* Recall grid */
+  .recall-grid { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .recall-item { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+  .recall-prompt { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+  .recall-ans { font-size: 1.2rem; color: var(--gold); display: none; }
+  .reveal-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reveal-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* Word reading */
+  .word-read-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .wr-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+  .wr-arm { font-size: 1.4rem; color: var(--gold); min-width: 70px; }
+  .wr-roman { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text-muted); min-width: 60px; }
+  .wr-reveal {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .wr-reveal:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .wr-eng { font-size: 0.85rem; color: var(--text); margin-left: 0.25rem; }
+
+  /* Final review */
+  .final-review-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+  .fr-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--surface);
+    border-radius: 6px;
+  }
+  .fr-sound { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--text-muted); min-width: 80px; }
+  .fr-arrow { color: var(--gold-dim); }
+  .fr-letter { font-size: 1.5rem; color: var(--gold); }
+
+  /* Ratings */
+  .rating-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+  .rating-row { display: flex; align-items: center; gap: 1rem; }
+  .rating-letter { font-size: 1.5rem; color: var(--gold); min-width: 35px; }
+  .rating-stars { display: flex; gap: 0.3rem; }
+  .rating-stars span {
+    font-size: 1.3rem;
+    color: var(--border);
+    cursor: pointer;
+    transition: color 0.15s;
+    user-select: none;
+  }
+  .rating-stars span.lit { color: var(--gold); }
+  .rating-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); }
+
+  /* Day switcher */
+  .day-switch-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    padding: 0.45rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-switch-btn:hover { color: var(--text); border-color: var(--gold-dim); }
+  .day-switch-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 500; }
+
+  /* Complete button */
+  .complete-btn {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.07em;
+    padding: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s;
+  }
+  .complete-btn:hover { background: var(--gold); color: var(--bg); }
+  .complete-btn:disabled { opacity: 0.5; cursor: default; background: var(--surface2); color: var(--text-muted); }
+
+  @media (max-width: 700px) {
+    .hero { grid-template-columns: 1fr; }
+    .letter-detail.visible { grid-template-columns: 1fr; }
+    .quiz-options { grid-template-columns: 1fr; }
+    nav { padding: 1rem 1.25rem; }
+    .nav-logo span { display: none; }
+    .hero, .schedule-section, .alphabet-section, .quiz-section, .resources-section { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
 </head>
 <body>
 
 <nav>
   <div class="nav-logo">Հայերեն <span>Eastern Armenian</span></div>
   <div class="nav-tabs">
-    <button class="tab-btn active"  onclick="showPanel('daily', this)">Daily</button>
-    <button class="tab-btn"         onclick="showPanel('alphabet', this)">Alphabet</button>
-    <button class="tab-btn"         onclick="showPanel('quiz', this)">Quiz</button>
-    <button class="tab-btn"         onclick="showPanel('flashcards', this)">Flashcards</button>
-    <button class="tab-btn"         onclick="showPanel('phrases', this)">Phrases</button>
-    <button class="tab-btn"         onclick="showPanel('resources', this)">Resources</button>
+    <button class="tab-btn active" onclick="showPanel('daily')">Daily</button>
+    <button class="tab-btn" onclick="showPanel('alphabet')">Alphabet</button>
+    <button class="tab-btn" onclick="showPanel('quiz')">Quiz</button>
+    <button class="tab-btn" onclick="showPanel('resources')">Resources</button>
   </div>
 </nav>
 
@@ -31,7 +614,7 @@
     <div class="streak-box">
       <div>
         <div class="streak-label">Day Streak</div>
-        <div class="streak-num" id="streakNum">0 <span>days</span></div>
+        <div class="streak-num">1 <span>day</span></div>
       </div>
       <div>
         <div class="streak-label">This Week</div>
@@ -45,180 +628,676 @@
   </div>
 
   <div class="schedule-section">
-    <div class="section-title">Today's Plan — Day 1 · ~35 minutes</div>
-    <div class="schedule-grid" style="display:flex;flex-direction:column;gap:0.75rem;max-width:100%;">
-      <div class="session-card" id="task1">
-        <div class="session-header" onclick="toggleSession('task1')">
-          <div style="flex:1;">
-            <div class="session-label accent-gold">SESSION 1</div>
-            <div style="font-size:0.9rem;color:var(--text-muted);margin:0.25rem 0;">Morning · 10 min</div>
-            <div class="session-title">Learn Your First 4 Letters</div>
-          </div>
-          <div class="session-actions">
-            <button class="session-done-btn" onclick="toggleTaskDone(event, 'task1')">✓ Done</button>
-            <div class="session-toggle">⌄</div>
-          </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-dim);">Select Day</div>
+      <div style="display:flex;gap:0.4rem;">
+        <button class="day-switch-btn active" id="dsBtn1" onclick="switchDay(1)">Day 1</button>
+        <button class="day-switch-btn" id="dsBtn2" onclick="switchDay(2)">Day 2</button>
+      </div>
+      <div id="day-subtitle" style="font-size:0.8rem;color:var(--text-muted);margin-left:0.25rem;">Ա Բ Գ Դ · First consonants & vowels</div>
+    </div>
+
+    <div id="day1-content">
+    <div class="section-title">Day 1 · ~35 minutes · Letters Ա Բ Գ Դ</div>
+
+    <!-- SESSION 1 -->
+    <div class="session-block" id="session1">
+      <div class="session-header" onclick="toggleSession('session1')">
+        <div class="session-header-left">
+          <div class="session-tag gold">Session 1</div>
+          <div class="session-meta">Morning · 10 min</div>
+          <div class="session-title-main">Learn Your First 4 Letters</div>
         </div>
-        <div class="session-details" style="display:none;padding:1.5rem;border-top:1px solid var(--border);">
-          <p style="color:var(--text-muted);margin-bottom:1.5rem;">Today you meet the first 4 letters of the Armenian alphabet. Read each card, say the sound aloud, then complete the writing exercise below.</p>
-
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;">
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
-              <div style="font-size:3rem;color:var(--gold);margin-bottom:0.5rem;">Ա</div>
-              <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">ա</div>
-              <div style="font-weight:500;color:var(--gold);margin-bottom:0.5rem;">AYB</div>
-              <div style="font-size:0.9rem;color:var(--text);margin-bottom:0.25rem;"><strong>"ah"</strong> — like father</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">The very first letter. Think: Armenian 'A'.</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
-              <div style="font-size:3rem;color:var(--gold);margin-bottom:0.5rem;">Բ</div>
-              <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">բ</div>
-              <div style="font-weight:500;color:var(--gold);margin-bottom:0.5rem;">BEN</div>
-              <div style="font-size:0.9rem;color:var(--text);margin-bottom:0.25rem;"><strong>"b"</strong> — like ball</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Looks like backwards G. Say "ben" to remember.</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
-              <div style="font-size:3rem;color:var(--gold);margin-bottom:0.5rem;">Գ</div>
-              <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">գ</div>
-              <div style="font-weight:500;color:var(--gold);margin-bottom:0.5rem;">GIM</div>
-              <div style="font-size:0.9rem;color:var(--text);margin-bottom:0.25rem;"><strong>"g"</strong> — like go</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Hard G. Lowercase q looks like a walking figure.</div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center;">
-              <div style="font-size:3rem;color:var(--gold);margin-bottom:0.5rem;">Դ</div>
-              <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">դ</div>
-              <div style="font-weight:500;color:var(--gold);margin-bottom:0.5rem;">DA</div>
-              <div style="font-size:0.9rem;color:var(--text);margin-bottom:0.25rem;"><strong>"d"</strong> — like dog</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Lowercase n on a pole. Softer than English. Think: <em>Da</em> → dad.</div>
-            </div>
-          </div>
-
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem;">
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
-              <span style="font-size:1.25rem;">✏️</span>
-              <div style="font-weight:500;color:var(--text);">Writing Exercise</div>
-            </div>
-            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;">Copy each letter into the boxes below. Trace the shape in the air first, then write. Each letter 3 times.</p>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:1rem;background:var(--surface2);border-radius:6px;">
-              <div style="font-size:1.5rem;color:var(--gold);">Ա</div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="margin-left:1rem;font-size:1.5rem;color:var(--gold);">Բ</div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="margin-left:1rem;font-size:1.5rem;color:var(--gold);">Գ</div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="margin-left:1rem;font-size:1.5rem;color:var(--gold);">Դ</div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-              <div style="width:40px;height:40px;border:1px solid var(--border);border-radius:4px;background:var(--surface);"></div>
-            </div>
-          </div>
-
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
-              <span style="font-size:1.25rem;">🔊</span>
-              <div style="font-weight:500;color:var(--text);">Pronunciation Check</div>
-            </div>
-            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.75rem;">Say each sound out loud 3 times in sequence: <strong style="color:var(--gold);">Ա · Բ · Գ · Դ</strong> — then say them backwards: <strong style="color:var(--gold);">Դ · Գ · Բ · Ա</strong>. If they sound natural both ways, you're ready.</p>
-          </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge1">✓ Done</div>
+          <div class="session-chevron" id="chev1">▼</div>
         </div>
       </div>
+      <div class="session-body" id="body1">
+        <p class="session-intro">Today you meet the first 4 letters of the Armenian alphabet. Read each card, say the sound aloud, then complete the writing exercise below.</p>
 
-      <div class="session-card" id="task2">
-        <div class="session-header" onclick="toggleSession('task2')">
-          <div style="flex:1;">
-            <div class="session-label accent-blue">SESSION 2</div>
-            <div style="font-size:0.9rem;color:var(--text-muted);margin:0.25rem 0;">Midday · 8 min</div>
-            <div class="session-title">Recognition Drill — Match the Sound</div>
+        <div class="letter-lesson-grid">
+          <div class="ll-card">
+            <div class="ll-big">Ա</div>
+            <div class="ll-small">ա</div>
+            <div class="ll-name">Ayb</div>
+            <div class="ll-sound">"ah" — like <em>f<u>a</u>ther</em></div>
+            <div class="ll-note">The very first letter. Also the numeral 1 in classical Armenian. Think of it as the Armenian "A".</div>
           </div>
-          <div class="session-actions">
-            <button class="session-done-btn" onclick="toggleTaskDone(event, 'task2')">✓ Done</button>
-            <div class="session-toggle">⌄</div>
+          <div class="ll-card">
+            <div class="ll-big">Բ</div>
+            <div class="ll-small">բ</div>
+            <div class="ll-name">Ben</div>
+            <div class="ll-sound">"b" — like <em><u>b</u>all</em></div>
+            <div class="ll-note">Looks a bit like a backwards 6. The lower case բ has a distinctive descender. Say "ben" to remember it.</div>
+          </div>
+          <div class="ll-card">
+            <div class="ll-big">Գ</div>
+            <div class="ll-small">գ</div>
+            <div class="ll-name">Gim</div>
+            <div class="ll-sound">"g" — like <em><u>g</u>o</em></div>
+            <div class="ll-note">Hard G — never soft like "gym". Lowercase գ looks like a walking figure. Think: <em>Gim</em> → go.</div>
+          </div>
+          <div class="ll-card">
+            <div class="ll-big">Դ</div>
+            <div class="ll-small">դ</div>
+            <div class="ll-name">Da</div>
+            <div class="ll-sound">"d" — like <em><u>d</u>og</em></div>
+            <div class="ll-note">Lowercase դ looks like a flag on a pole. It's an unaspirated D — softer than English. Think: <em>Da</em> → dad.</div>
           </div>
         </div>
-        <div class="session-details" style="display:none;padding:1.5rem;border-top:1px solid var(--border);">
-          <p style="color:var(--text-muted);margin-bottom:1.5rem;">Test your ability to recognize letters by their sounds. This reinforces the connection between sound and shape.</p>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
-            <div style="font-weight:500;color:var(--text);margin-bottom:0.75rem;">📝 Instructions:</div>
-            <ol style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;margin:0;padding-left:1.5rem;">
-              <li>Go to the <strong style="color:var(--gold);">Quiz</strong> tab</li>
-              <li>Make sure <strong style="color:var(--gold);">Letters mode</strong> is selected</li>
-              <li>Try the <strong style="color:var(--gold);">"Sound → Char"</strong> direction — this is harder and builds real recognition</li>
-              <li>You'll hear a sound and must pick the Armenian letter from 4 choices</li>
-              <li>Aim for 80% accuracy or higher</li>
-            </ol>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text-muted);font-size:0.85rem;line-height:1.6;">
-            <strong style="color:var(--gold);">💡 Tip:</strong> The "Sound → Char" direction is more challenging because you have to recall the shape from memory. This is exactly what you need for real reading.
-          </div>
-        </div>
-      </div>
 
-      <div class="session-card" id="task3">
-        <div class="session-header" onclick="toggleSession('task3')">
-          <div style="flex:1;">
-            <div class="session-label accent-green">SESSION 3</div>
-            <div style="font-size:0.9rem;color:var(--text-muted);margin:0.25rem 0;">Evening · 10 min</div>
-            <div class="session-title">Read Real Armenian Words</div>
-          </div>
-          <div class="session-actions">
-            <button class="session-done-btn" onclick="toggleTaskDone(event, 'task3')">✓ Done</button>
-            <div class="session-toggle">⌄</div>
-          </div>
-        </div>
-        <div class="session-details" style="display:none;padding:1.5rem;border-top:1px solid var(--border);">
-          <p style="color:var(--text-muted);margin-bottom:1.5rem;">Now see your 4 letters in real Armenian words. Reading these words out loud cements your letter knowledge.</p>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
-            <div style="font-weight:500;color:var(--text);margin-bottom:0.75rem;">📝 Instructions:</div>
-            <ol style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;margin:0;padding-left:1.5rem;">
-              <li>Go to the <strong style="color:var(--gold);">Alphabet</strong> tab</li>
-              <li>Click on each of the 4 letters: Ա, Բ, Գ, Դ</li>
-              <li>At the bottom of each letter detail, you'll see <strong style="color:var(--gold);">Example Words</strong></li>
-              <li>Try to read each word aloud using only the sounds you know</li>
-              <li>Use the <strong style="color:var(--gold);">Phrases</strong> tab to hear native pronunciation</li>
-            </ol>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text-muted);font-size:0.85rem;line-height:1.6;">
-            <strong style="color:var(--gold);">💡 Tip:</strong> Don't worry if you can't read the whole word yet. Just focus on recognizing your 4 new letters and saying their sounds.
+        <div class="exercise-block">
+          <div class="exercise-title">✏️ Writing Exercise</div>
+          <p class="exercise-desc">Copy each letter into the boxes below. Trace the shape in the air first, then write. Each letter 3 times.</p>
+          <div class="write-row">
+            <span class="write-model">Ա</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <span class="write-model">Բ</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <span class="write-model">Գ</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <span class="write-model">Դ</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
           </div>
         </div>
-      </div>
 
-      <div class="session-card" id="task4">
-        <div class="session-header" onclick="toggleSession('task4')">
-          <div style="flex:1;">
-            <div class="session-label accent-red">SESSION 4</div>
-            <div style="font-size:0.9rem;color:var(--text-muted);margin:0.25rem 0;">Night · 7 min</div>
-            <div class="session-title">End-of-Day Review & Reflection</div>
-          </div>
-          <div class="session-actions">
-            <button class="session-done-btn" onclick="toggleTaskDone(event, 'task4')">✓ Done</button>
-            <div class="session-toggle">⌄</div>
-          </div>
+        <div class="exercise-block">
+          <div class="exercise-title">🔊 Pronunciation Check</div>
+          <p class="exercise-desc">Say each sound out loud 3 times in sequence: <strong style="color:var(--gold)">Ա · Բ · Գ · Դ</strong> — then say them backwards: <strong style="color:var(--gold)">Դ · Գ · Բ · Ա</strong>. If they sound natural both ways, you're ready.</p>
         </div>
-        <div class="session-details" style="display:none;padding:1.5rem;border-top:1px solid var(--border);">
-          <p style="color:var(--text-muted);margin-bottom:1.5rem;">Spaced repetition is the most powerful learning technique. Reviewing today's letters before sleep helps lock them into memory.</p>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
-            <div style="font-weight:500;color:var(--text);margin-bottom:0.75rem;">📝 Instructions:</div>
-            <ol style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;margin:0;padding-left:1.5rem;">
-              <li>Go to the <strong style="color:var(--gold);">Flashcards</strong> tab</li>
-              <li>Select <strong style="color:var(--gold);">Letters</strong> deck</li>
-              <li>Flip through each card and rate how well you know it: <strong style="color:var(--gold);">Hard / Got it / Easy</strong></li>
-              <li>Mark the 4 letters you learned today as <strong style="color:var(--gold);">"Got it"</strong> or <strong style="color:var(--gold);">"Easy"</strong></li>
-              <li>Take 2–3 minutes to just review them without pressure</li>
-            </ol>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text-muted);font-size:0.85rem;line-height:1.6;">
-            <strong style="color:var(--gold);">💡 Reflection:</strong> Which letter felt easiest today? Which one needs more practice? Write your thoughts down — this helps your brain consolidate what you've learned.
-          </div>
-        </div>
+
+        <button class="complete-btn" onclick="markDone('badge1', 'session1', this)">Mark Session Complete</button>
       </div>
     </div>
+
+    <!-- SESSION 2 -->
+    <div class="session-block" id="session2">
+      <div class="session-header" onclick="toggleSession('session2')">
+        <div class="session-header-left">
+          <div class="session-tag blue">Session 2</div>
+          <div class="session-meta">Midday · 8 min</div>
+          <div class="session-title-main">Recognition Drill — Match the Sound</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge2">✓ Done</div>
+          <div class="session-chevron" id="chev2">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body2">
+        <p class="session-intro">You've learned the shapes — now train your eye to recognize them instantly. This is about speed, not perfection.</p>
+
+        <div class="exercise-block">
+          <div class="exercise-title">👁 Flash Recognition</div>
+          <p class="exercise-desc">Look at each letter below for 2 seconds, say the sound aloud before reading the answer, then check yourself.</p>
+          <div class="flash-grid" id="flashGrid">
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">Բ</div><div class="flash-back">b · Ben</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">Ա</div><div class="flash-back">a · Ayb</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">Դ</div><div class="flash-back">d · Da</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">Գ</div><div class="flash-back">g · Gim</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">բ</div><div class="flash-back">b · lowercase</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">գ</div><div class="flash-back">g · lowercase</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">դ</div><div class="flash-back">d · lowercase</div>
+            </div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')">
+              <div class="flash-front">ա</div><div class="flash-back">a · lowercase</div>
+            </div>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.75rem;">Tap each card to reveal the answer.</p>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">📝 Quick Recall</div>
+          <p class="exercise-desc">Without looking above — write the Armenian letter for each sound:</p>
+          <div class="recall-grid">
+            <div class="recall-item">
+              <div class="recall-prompt">"ah"</div>
+              <input class="write-box wide" maxlength="1" placeholder="?">
+              <div class="recall-ans">Ա</div>
+            </div>
+            <div class="recall-item">
+              <div class="recall-prompt">"b"</div>
+              <input class="write-box wide" maxlength="1" placeholder="?">
+              <div class="recall-ans">Բ</div>
+            </div>
+            <div class="recall-item">
+              <div class="recall-prompt">"g"</div>
+              <input class="write-box wide" maxlength="1" placeholder="?">
+              <div class="recall-ans">Գ</div>
+            </div>
+            <div class="recall-item">
+              <div class="recall-prompt">"d"</div>
+              <input class="write-box wide" maxlength="1" placeholder="?">
+              <div class="recall-ans">Դ</div>
+            </div>
+          </div>
+          <button class="reveal-btn" onclick="revealAnswers()">Reveal Answers</button>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge2', 'session2', this)">Mark Session Complete</button>
+      </div>
+    </div>
+
+    <!-- SESSION 3 -->
+    <div class="session-block" id="session3">
+      <div class="session-header" onclick="toggleSession('session3')">
+        <div class="session-header-left">
+          <div class="session-tag green">Session 3</div>
+          <div class="session-meta">Evening · 10 min</div>
+          <div class="session-title-main">Read Real Armenian Words</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge3">✓ Done</div>
+          <div class="session-chevron" id="chev3">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body3">
+        <p class="session-intro">Time to use your letters in context. All words below use only Ա, Բ, Գ, Դ — plus vowels you'll recognize from English. Attempt to sound out each word before revealing the translation.</p>
+
+        <div class="exercise-block">
+          <div class="exercise-title">📖 Word Reading Practice</div>
+          <div class="word-read-list">
+            <div class="wr-item">
+              <div class="wr-arm">դաս</div>
+              <div class="wr-roman">das</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">lesson / class</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">բաց</div>
+              <div class="wr-roman">bats</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">open</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">գագ</div>
+              <div class="wr-roman">gag</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">peak / summit (archaic)</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">աղ</div>
+              <div class="wr-roman">agh</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">salt</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">բաժ</div>
+              <div class="wr-roman">bazh</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">portion / share</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">գարի</div>
+              <div class="wr-roman">ga-ri</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">barley</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">✍️ Write a Word from Memory</div>
+          <p class="exercise-desc">Without looking above, try to write the Armenian word for <strong style="color:var(--gold)">"lesson"</strong> and <strong style="color:var(--gold)">"open"</strong>:</p>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;">lesson</div>
+              <input class="write-box wide" placeholder="· · ·" style="width:80px;">
+              <div style="font-size:0.7rem;color:var(--gold-dim);margin-top:0.3rem;">answer: դաս</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;">open</div>
+              <input class="write-box wide" placeholder="· · ·" style="width:80px;">
+              <div style="font-size:0.7rem;color:var(--gold-dim);margin-top:0.3rem;">answer: բաց</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge3', 'session3', this)">Mark Session Complete</button>
+      </div>
+    </div>
+
+    <!-- SESSION 4 -->
+    <div class="session-block" id="session4">
+      <div class="session-header" onclick="toggleSession('session4')">
+        <div class="session-header-left">
+          <div class="session-tag red">Session 4</div>
+          <div class="session-meta">Night · 7 min</div>
+          <div class="session-title-main">End-of-Day Review & Reflection</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge4">✓ Done</div>
+          <div class="session-chevron" id="chev4">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body4">
+        <p class="session-intro">Before bed is the best time to consolidate memory. Do this review slowly — you're cementing today's learning into long-term memory.</p>
+
+        <div class="exercise-block">
+          <div class="exercise-title">🔁 Final Recall — No Hints</div>
+          <p class="exercise-desc">Cover the letters below with your hand. For each sound, picture the Armenian letter in your mind, then check.</p>
+          <div class="final-review-grid">
+            <div class="fr-row">
+              <span class="fr-sound">Say "ah"</span>
+              <span class="fr-arrow">→</span>
+              <span class="fr-letter">Ա ա</span>
+            </div>
+            <div class="fr-row">
+              <span class="fr-sound">Say "b"</span>
+              <span class="fr-arrow">→</span>
+              <span class="fr-letter">Բ բ</span>
+            </div>
+            <div class="fr-row">
+              <span class="fr-sound">Say "g"</span>
+              <span class="fr-arrow">→</span>
+              <span class="fr-letter">Գ գ</span>
+            </div>
+            <div class="fr-row">
+              <span class="fr-sound">Say "d"</span>
+              <span class="fr-arrow">→</span>
+              <span class="fr-letter">Դ դ</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">💭 Reflection — Self-Rating</div>
+          <p class="exercise-desc">Honestly rate how well you know each letter today. This helps you focus tomorrow.</p>
+          <div class="rating-grid">
+            <div class="rating-row">
+              <span class="rating-letter">Ա</span>
+              <div class="rating-stars" data-letter="A">
+                <span onclick="rate('A',1,this)">★</span><span onclick="rate('A',2,this)">★</span><span onclick="rate('A',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rA">not yet rated</span>
+            </div>
+            <div class="rating-row">
+              <span class="rating-letter">Բ</span>
+              <div class="rating-stars" data-letter="B">
+                <span onclick="rate('B',1,this)">★</span><span onclick="rate('B',2,this)">★</span><span onclick="rate('B',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rB">not yet rated</span>
+            </div>
+            <div class="rating-row">
+              <span class="rating-letter">Գ</span>
+              <div class="rating-stars" data-letter="G">
+                <span onclick="rate('G',1,this)">★</span><span onclick="rate('G',2,this)">★</span><span onclick="rate('G',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rG">not yet rated</span>
+            </div>
+            <div class="rating-row">
+              <span class="rating-letter">Դ</span>
+              <div class="rating-stars" data-letter="D">
+                <span onclick="rate('D',1,this)">★</span><span onclick="rate('D',2,this)">★</span><span onclick="rate('D',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rD">not yet rated</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-box" style="margin-top:1rem;">
+          <p><strong>Tonight's tip:</strong> Before sleeping, close your eyes and mentally trace the shape of each letter — Ա, Բ, Գ, Դ. Just 30 seconds. Sleep consolidates memory and you'll find them easier to recall tomorrow morning.</p>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge4', 'session4', this)">Mark Day Complete 🎉</button>
+      </div>
+    </div>
+
+    </div><!-- /day1-content -->
+
+    <!-- ====== DAY 2 CONTENT ====== -->
+    <div id="day2-content" style="display:none;">
+    <div class="section-title">Day 2 · ~35 minutes · Letters Ե Զ Է Ը</div>
+
+    <!-- D2 SESSION 1 -->
+    <div class="session-block" id="d2session1">
+      <div class="session-header" onclick="toggleSession('d2session1')">
+        <div class="session-header-left">
+          <div class="session-tag gold">Session 1</div>
+          <div class="session-meta">Morning · 10 min</div>
+          <div class="session-title-main">4 New Letters — The Vowels of Armenian</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge-d2-1">✓ Done</div>
+          <div class="session-chevron" id="chev-d2-1">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body-d2-1">
+        <p class="session-intro">Today's 4 letters are all vowels — the backbone of Armenian pronunciation. They cover the most common vowel sounds you'll encounter. Master these and reading becomes dramatically easier.</p>
+
+        <div class="letter-lesson-grid">
+          <div class="ll-card">
+            <div class="ll-big">Ե</div>
+            <div class="ll-small">ե</div>
+            <div class="ll-name">Yech</div>
+            <div class="ll-sound">"ye" at start · "e" in middle</div>
+            <div class="ll-note">At the start of a word: "ye" like <u>ye</u>s. Mid-word: "e" like b<u>e</u>d. This dual behavior is key — context tells you which.</div>
+          </div>
+          <div class="ll-card">
+            <div class="ll-big">Զ</div>
+            <div class="ll-small">զ</div>
+            <div class="ll-name">Za</div>
+            <div class="ll-sound">"z" — like <em><u>z</u>oo</em></div>
+            <div class="ll-note">A clean "z" sound. The uppercase Զ looks like a stylized number 2. Lowercase զ is distinctive — a looping descender. Think: <em>Za</em> → zoo.</div>
+          </div>
+          <div class="ll-card">
+            <div class="ll-big">Է</div>
+            <div class="ll-small">է</div>
+            <div class="ll-name">Eh</div>
+            <div class="ll-sound">"e" — like <em>b<u>e</u>d</em></div>
+            <div class="ll-note">Always a pure "e" — unlike Ե. Crucially: Է is also the word for <strong style="color:var(--gold)">"is"</strong> in Eastern Armenian. "Ան Է" = "He/she is." You already know a verb!</div>
+          </div>
+          <div class="ll-card">
+            <div class="ll-big">Ը</div>
+            <div class="ll-small">ը</div>
+            <div class="ll-name">Et</div>
+            <div class="ll-sound">"uh" — the schwa /ə/</div>
+            <div class="ll-note">The neutral "uh" sound — like the "a" in <u>a</u>bout or the "e" in th<u>e</u>. Extremely common in Armenian. Think of it as the "lazy" vowel — mouth relaxed, neutral position.</div>
+          </div>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">⚡ Key Contrast: Ե vs Է vs Ը</div>
+          <p class="exercise-desc">These three look similar but sound different. Say them one after another:</p>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center;margin-top:0.5rem;">
+            <div style="text-align:center;">
+              <div style="font-size:2.5rem;color:var(--gold);">Ե</div>
+              <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-top:0.3rem;">ye / e</div>
+            </div>
+            <div style="color:var(--gold-dim);font-size:1.5rem;">≠</div>
+            <div style="text-align:center;">
+              <div style="font-size:2.5rem;color:var(--gold);">Է</div>
+              <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-top:0.3rem;">e (always)</div>
+            </div>
+            <div style="color:var(--gold-dim);font-size:1.5rem;">≠</div>
+            <div style="text-align:center;">
+              <div style="font-size:2.5rem;color:var(--gold);">Ը</div>
+              <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-muted);margin-top:0.3rem;">uh (schwa)</div>
+            </div>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.75rem;">Say all three aloud 3 times in a row. The mouth position shifts slightly for each — feel the difference.</p>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">✏️ Writing Exercise</div>
+          <p class="exercise-desc">Write each letter 3 times. Pay attention to the subtle shape differences between Ե, Է, and Ը.</p>
+          <div class="write-row">
+            <span class="write-model">Ե</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <span class="write-model">Զ</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <span class="write-model">Է</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <span class="write-model">Ը</span>
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+            <input class="write-box" maxlength="1" placeholder="·">
+          </div>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge-d2-1', 'd2session1', this)">Mark Session Complete</button>
+      </div>
+    </div>
+
+    <!-- D2 SESSION 2 -->
+    <div class="session-block" id="d2session2">
+      <div class="session-header" onclick="toggleSession('d2session2')">
+        <div class="session-header-left">
+          <div class="session-tag blue">Session 2</div>
+          <div class="session-meta">Midday · 8 min</div>
+          <div class="session-title-main">Day 1 + Day 2 Combined Review</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge-d2-2">✓ Done</div>
+          <div class="session-chevron" id="chev-d2-2">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body-d2-2">
+        <p class="session-intro">You now know 8 letters. This session mixes Day 1 and Day 2 letters to strengthen your recognition across the full set so far. Speed matters here — aim for instant recall.</p>
+
+        <div class="exercise-block">
+          <div class="exercise-title">👁 Flash Recognition — All 8 Letters</div>
+          <p class="exercise-desc">Tap each card, say the sound <em>before</em> flipping, then check yourself.</p>
+          <div class="flash-grid">
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Ե</div><div class="flash-back">ye/e · Yech</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Ա</div><div class="flash-back">a · Ayb</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Է</div><div class="flash-back">e · Eh</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Բ</div><div class="flash-back">b · Ben</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Ը</div><div class="flash-back">uh · Et</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Գ</div><div class="flash-back">g · Gim</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Զ</div><div class="flash-back">z · Za</div></div>
+            <div class="flash-card" onclick="this.classList.toggle('flipped')"><div class="flash-front">Դ</div><div class="flash-back">d · Da</div></div>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.75rem;">Tap each card to reveal.</p>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">📝 Sound → Letter Recall</div>
+          <p class="exercise-desc">Write the Armenian letter for each sound. All 8 from Days 1–2.</p>
+          <div class="recall-grid">
+            <div class="recall-item"><div class="recall-prompt">"ah"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Ա</div></div>
+            <div class="recall-item"><div class="recall-prompt">"b"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Բ</div></div>
+            <div class="recall-item"><div class="recall-prompt">"g"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Գ</div></div>
+            <div class="recall-item"><div class="recall-prompt">"d"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Դ</div></div>
+            <div class="recall-item"><div class="recall-prompt">"ye/e"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Ե</div></div>
+            <div class="recall-item"><div class="recall-prompt">"z"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Զ</div></div>
+            <div class="recall-item"><div class="recall-prompt">"e"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Է</div></div>
+            <div class="recall-item"><div class="recall-prompt">"uh"</div><input class="write-box wide" maxlength="1" placeholder="?"><div class="recall-ans">Ը</div></div>
+          </div>
+          <button class="reveal-btn" onclick="revealAnswers2()">Reveal Answers</button>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge-d2-2', 'd2session2', this)">Mark Session Complete</button>
+      </div>
+    </div>
+
+    <!-- D2 SESSION 3 -->
+    <div class="session-block" id="d2session3">
+      <div class="session-header" onclick="toggleSession('d2session3')">
+        <div class="session-header-left">
+          <div class="session-tag green">Session 3</div>
+          <div class="session-meta">Evening · 10 min</div>
+          <div class="session-title-main">Read Words & Your First Sentences</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge-d2-3">✓ Done</div>
+          <div class="session-chevron" id="chev-d2-3">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body-d2-3">
+        <p class="session-intro">With 8 letters you can now read real words — including your first meaningful Armenian sentence. Work through each word before revealing the meaning. Then try the sentence challenge.</p>
+
+        <div class="exercise-block">
+          <div class="exercise-title">📖 Word Reading — Days 1 & 2 Letters</div>
+          <div class="word-read-list">
+            <div class="wr-item">
+              <div class="wr-arm">Երգ</div>
+              <div class="wr-roman">yerg</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">song</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">Ես</div>
+              <div class="wr-roman">yes</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">I (first person pronoun)</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">Զանգ</div>
+              <div class="wr-roman">zang</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">bell / phone call</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">Բաժ</div>
+              <div class="wr-roman">bazh</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">portion / share</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">Գետ</div>
+              <div class="wr-roman">get</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">river</span>
+            </div>
+            <div class="wr-item">
+              <div class="wr-arm">Դեղ</div>
+              <div class="wr-roman">degh</div>
+              <button class="wr-reveal" onclick="this.nextElementSibling.style.display='inline'">reveal</button>
+              <span class="wr-eng" style="display:none">medicine / drug</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">🌟 Your First Armenian Sentence</div>
+          <p class="exercise-desc">You already know enough to read a real sentence. Try sounding it out before revealing.</p>
+          <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:10px;padding:1.5rem;text-align:center;margin:0.75rem 0;">
+            <div style="font-size:2rem;color:var(--gold);letter-spacing:0.05em;">Ես երգ եմ սիրում</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">Yes yerg yem sirum</div>
+            <button class="wr-reveal" style="margin-top:0.75rem;" onclick="document.getElementById('sentTrans').style.display='block'">reveal meaning</button>
+            <div id="sentTrans" style="display:none;margin-top:0.75rem;font-size:1rem;color:var(--text);">I love songs.</div>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-muted);">Note: "սիրում" uses letters you haven't learned yet — but Ե, Ս, Ե, Ր, Գ you can already read! Notice how Ե sounds like "ye" at the start of a word.</p>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">✍️ Write from Memory</div>
+          <p class="exercise-desc">Try writing these words without looking above:</p>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;">song</div>
+              <input class="write-box wide" placeholder="· · ·" style="width:80px;">
+              <div style="font-size:0.7rem;color:var(--gold-dim);margin-top:0.3rem;">answer: Երգ</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;">"I"</div>
+              <input class="write-box wide" placeholder="· ·" style="width:60px;">
+              <div style="font-size:0.7rem;color:var(--gold-dim);margin-top:0.3rem;">answer: Ես</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;">river</div>
+              <input class="write-box wide" placeholder="· · ·" style="width:80px;">
+              <div style="font-size:0.7rem;color:var(--gold-dim);margin-top:0.3rem;">answer: Գետ</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge-d2-3', 'd2session3', this)">Mark Session Complete</button>
+      </div>
+    </div>
+
+    <!-- D2 SESSION 4 -->
+    <div class="session-block" id="d2session4">
+      <div class="session-header" onclick="toggleSession('d2session4')">
+        <div class="session-header-left">
+          <div class="session-tag red">Session 4</div>
+          <div class="session-meta">Night · 7 min</div>
+          <div class="session-title-main">End-of-Day Review — All 8 Letters</div>
+        </div>
+        <div class="session-header-right">
+          <div class="session-done-badge" id="badge-d2-4">✓ Done</div>
+          <div class="session-chevron" id="chev-d2-4">▼</div>
+        </div>
+      </div>
+      <div class="session-body" id="body-d2-4">
+        <p class="session-intro">End of Day 2. You know 8 out of 38 letters — over 20% done. Do this final pass slowly and honestly before sleeping.</p>
+
+        <div class="exercise-block">
+          <div class="exercise-title">🔁 Complete Recall — Days 1 & 2</div>
+          <p class="exercise-desc">Cover the right column. Say the sound, visualise the letter, then check.</p>
+          <div class="final-review-grid">
+            <div class="fr-row"><span class="fr-sound">Say "ah"</span><span class="fr-arrow">→</span><span class="fr-letter">Ա ա</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "b"</span><span class="fr-arrow">→</span><span class="fr-letter">Բ բ</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "g"</span><span class="fr-arrow">→</span><span class="fr-letter">Գ գ</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "d"</span><span class="fr-arrow">→</span><span class="fr-letter">Դ դ</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "ye/e"</span><span class="fr-arrow">→</span><span class="fr-letter">Ե ե</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "z"</span><span class="fr-arrow">→</span><span class="fr-letter">Զ զ</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "e"</span><span class="fr-arrow">→</span><span class="fr-letter">Է է</span></div>
+            <div class="fr-row"><span class="fr-sound">Say "uh"</span><span class="fr-arrow">→</span><span class="fr-letter">Ը ը</span></div>
+          </div>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">💭 Self-Rating — Today's 4 Letters</div>
+          <p class="exercise-desc">Rate your confidence on today's new letters only.</p>
+          <div class="rating-grid">
+            <div class="rating-row">
+              <span class="rating-letter">Ե</span>
+              <div class="rating-stars" data-letter="d2E">
+                <span onclick="rate('d2E',1,this)">★</span><span onclick="rate('d2E',2,this)">★</span><span onclick="rate('d2E',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rd2E">not yet rated</span>
+            </div>
+            <div class="rating-row">
+              <span class="rating-letter">Զ</span>
+              <div class="rating-stars" data-letter="d2Z">
+                <span onclick="rate('d2Z',1,this)">★</span><span onclick="rate('d2Z',2,this)">★</span><span onclick="rate('d2Z',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rd2Z">not yet rated</span>
+            </div>
+            <div class="rating-row">
+              <span class="rating-letter">Է</span>
+              <div class="rating-stars" data-letter="d2Eh">
+                <span onclick="rate('d2Eh',1,this)">★</span><span onclick="rate('d2Eh',2,this)">★</span><span onclick="rate('d2Eh',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rd2Eh">not yet rated</span>
+            </div>
+            <div class="rating-row">
+              <span class="rating-letter">Ը</span>
+              <div class="rating-stars" data-letter="d2Et">
+                <span onclick="rate('d2Et',1,this)">★</span><span onclick="rate('d2Et',2,this)">★</span><span onclick="rate('d2Et',3,this)">★</span>
+              </div>
+              <span class="rating-label" id="rd2Et">not yet rated</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exercise-block">
+          <div class="exercise-title">🌙 Bonus: Say It in Armenian</div>
+          <p class="exercise-desc">Before you sleep, say this phrase out loud. You can read every letter of the first two words now:</p>
+          <div style="background:var(--surface);border-left:3px solid var(--gold);padding:1rem 1.25rem;border-radius:0 8px 8px 0;margin-top:0.5rem;">
+            <div style="font-size:1.6rem;color:var(--gold);">Բարի գիշեր</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">Ba-ri gi-sher</div>
+            <div style="font-size:0.85rem;color:var(--text);margin-top:0.4rem;">Good night</div>
+          </div>
+        </div>
+
+        <div class="tip-box" style="margin-top:1rem;">
+          <p><strong>Tonight's tip:</strong> The trickiest part of today was Ե vs Է vs Ը — three similar-looking vowels. As you drift off, mentally say: <em>Ե = sometimes "ye", Է = always "e", Ը = always "uh"</em>. That single distinction will pay off throughout the whole alphabet.</p>
+        </div>
+
+        <button class="complete-btn" onclick="markDone('badge-d2-4', 'd2session4', this)">Mark Day 2 Complete 🎉</button>
+      </div>
+    </div>
+    </div><!-- /day2-content -->
 
     <div style="margin-top:2rem;">
       <div class="section-title">Weekly Roadmap — Alphabet in 10 Days</div>
@@ -273,6 +1352,7 @@
         <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.3rem;">Created by Mesrop Mashtots in 405 AD · 38 letters</p>
       </div>
     </div>
+
     <div class="letter-grid" id="letterGrid"></div>
     <div class="letter-detail" id="letterDetail"></div>
   </div>
@@ -282,91 +1362,19 @@
 <div id="panel-quiz" class="panel">
   <div class="quiz-section">
     <div class="quiz-top">
-      <h2>Quiz</h2>
+      <h2>Letter Quiz</h2>
       <div class="quiz-score" id="quizScore">Score: 0/0</div>
     </div>
-
-    <div class="quiz-controls">
-      <div class="control-group">
-        <span class="control-label">Mode</span>
-        <button class="ctrl-btn active" id="btnModeLetters" onclick="setQuizMode('letters')">Letters</button>
-        <button class="ctrl-btn"        id="btnModeWords"   onclick="setQuizMode('words')">Words</button>
-      </div>
-      <div class="control-group" id="directionGroup">
-        <span class="control-label">Direction</span>
-        <button class="ctrl-btn active" id="btnDirToSound" onclick="setQuizDirection('toSound')">Char → Sound</button>
-        <button class="ctrl-btn"        id="btnDirToChar"  onclick="setQuizDirection('toChar')">Sound → Char</button>
-      </div>
-    </div>
-
-    <!-- Word quiz category filter (hidden in letter mode) -->
-    <div class="word-quiz-cats" id="wordQuizCats" style="display:none;"></div>
-
     <div class="progress-bar-wrap">
       <div class="progress-bar-fill" id="quizProgress" style="width:0%"></div>
     </div>
-
     <div class="quiz-card" id="quizCard">
-      <div class="quiz-prompt" id="quizPrompt">What sound does this letter make?</div>
+      <div class="quiz-prompt">What sound does this letter make?</div>
       <div class="quiz-char" id="quizChar">Ա</div>
       <div class="quiz-subtext" id="quizSub">Eastern Armenian</div>
     </div>
-
     <div class="quiz-options" id="quizOptions"></div>
-    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next →</button>
-  </div>
-</div>
-
-<!-- ====== FLASHCARDS PANEL ====== -->
-<div id="panel-flashcards" class="panel">
-  <div class="flashcard-section">
-    <div class="flashcard-top">
-      <h2>Flashcards</h2>
-      <div class="flashcard-controls">
-        <div class="control-group">
-          <span class="control-label">Deck</span>
-          <button class="ctrl-btn active" id="fcDeckLetters" onclick="setFCDeck('letters')">Letters</button>
-          <button class="ctrl-btn"        id="fcDeckWords"   onclick="setFCDeck('words')">Words</button>
-        </div>
-        <div class="control-group" id="fcCategoryGroup" style="display:none;flex-wrap:wrap;gap:0.4rem;"></div>
-      </div>
-    </div>
-
-    <div class="fc-progress">
-      <span id="fcCounter">1 / 38</span>
-      <div class="progress-bar-wrap" style="flex:1;margin-bottom:0;">
-        <div class="progress-bar-fill" id="fcProgressBar" style="width:0%"></div>
-      </div>
-    </div>
-
-    <div class="flashcard-container">
-      <div class="flashcard" id="flashcard" onclick="flipCard()">
-        <div class="flashcard-inner" id="flashcardInner">
-          <div class="flashcard-front" id="fcFront"></div>
-          <div class="flashcard-back"  id="fcBack"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="flashcard-hint" id="fcHint">Click the card to reveal</div>
-
-    <div class="fc-rating" id="fcRating" style="display:none;">
-      <button class="fc-rate fc-rate-hard" onclick="rateCard('hard')">Hard</button>
-      <button class="fc-rate fc-rate-ok"   onclick="rateCard('ok')">Got it</button>
-      <button class="fc-rate fc-rate-easy" onclick="rateCard('easy')">Easy</button>
-    </div>
-  </div>
-</div>
-
-<!-- ====== PHRASES PANEL ====== -->
-<div id="panel-phrases" class="panel">
-  <div class="phrasebook-section">
-    <div class="phrases-header">
-      <h2>Phrasebook</h2>
-      <p>Common phrases for everyday Eastern Armenian conversation. Click any phrase to expand it.</p>
-    </div>
-    <div class="phrase-cats" id="phraseCats"></div>
-    <div class="phrase-list" id="phraseList"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Letter →</button>
   </div>
 </div>
 
@@ -445,20 +1453,301 @@
   </div>
 </div>
 
-<!-- Data (no dependencies) -->
-<script src="js/data/letters.js"></script>
-<script src="js/data/vocabulary.js"></script>
-<script src="js/data/phrases.js"></script>
-<!-- Core -->
-<script src="js/storage.js"></script>
-<script src="js/nav.js"></script>
-<!-- Features -->
-<script src="js/daily.js"></script>
-<script src="js/alphabet.js"></script>
-<script src="js/quiz.js"></script>
-<script src="js/flashcards.js"></script>
-<script src="js/phrasebook.js"></script>
-<!-- Entry point -->
-<script src="js/app.js"></script>
+<script>
+// ===== DATA =====
+const letters = [
+  { arm: 'Ա', lower: 'ա', name: 'Ayb', sound: 'a', ipa: '/ɑ/', desc: 'The first letter of the Armenian alphabet. Sounds like "a" in "father". It is also the numeral 1 in classical Armenian numerals.', words: [{arm:'Ամառ', eng:'Summer'},{arm:'Արև', eng:'Sun'},{arm:'Աղ', eng:'Salt'}] },
+  { arm: 'Բ', lower: 'բ', name: 'Ben', sound: 'b', ipa: '/b/', desc: 'Sounds like English "b". A voiced bilabial stop.', words: [{arm:'Բժիշկ', eng:'Doctor'},{arm:'Բաց', eng:'Open'},{arm:'Բերան', eng:'Mouth'}] },
+  { arm: 'Գ', lower: 'գ', name: 'Gim', sound: 'g', ipa: '/ɡ/', desc: 'Sounds like English "g" in "go". Hard g sound.', words: [{arm:'Գիշեր', eng:'Night'},{arm:'Գետ', eng:'River'},{arm:'Գլուխ', eng:'Head'}] },
+  { arm: 'Դ', lower: 'դ', name: 'Da', sound: 'd', ipa: '/d/', desc: 'Sounds like English "d". Voiced dental/alveolar stop.', words: [{arm:'Դուռ', eng:'Door'},{arm:'Դեղ', eng:'Medicine'},{arm:'Դաս', eng:'Lesson'}] },
+  { arm: 'Ե', lower: 'ե', name: 'Yech', sound: 'ye', ipa: '/jɛ/', desc: 'At the start of a word it sounds like "ye" in "yes". In the middle/end it sounds like "e" in "bed".', words: [{arm:'Երգ', eng:'Song'},{arm:'Երկիր', eng:'Country'},{arm:'Ես', eng:'I'}] },
+  { arm: 'Զ', lower: 'զ', name: 'Za', sound: 'z', ipa: '/z/', desc: 'Sounds like English "z" in "zoo". Voiced alveolar fricative.', words: [{arm:'Զանգ', eng:'Bell/Call'},{arm:'Զինվոր', eng:'Soldier'},{arm:'Զբոսնել', eng:'To walk'}] },
+  { arm: 'Է', lower: 'է', name: 'Eh', sound: 'e', ipa: '/ɛ/', desc: 'Sounds like "e" in "bed". Unlike Ե, this always sounds like a pure "e". Also the word for "is" in Eastern Armenian.', words: [{arm:'Է', eng:'Is'},{arm:'Էլ', eng:'Also/More'},{arm:'Էջ', eng:'Page'}] },
+  { arm: 'Ը', lower: 'ը', name: 'Et', sound: 'uh', ipa: '/ə/', desc: 'The schwa sound — like "uh" in "about". A neutral unstressed vowel, very common in Armenian.', words: [{arm:'Ընտանիք', eng:'Family'},{arm:'Ընկեր', eng:'Friend'},{arm:'Ընդամենը', eng:'Only/Total'}] },
+  { arm: 'Թ', lower: 'թ', name: 'To', sound: "t'", ipa: '/tʰ/', desc: 'Aspirated "t" — like "t" in "top" with a puff of air. Different from the unaspirated Տ.', words: [{arm:'Թուղթ', eng:'Paper'},{arm:'Թե', eng:'If'},{arm:'Թիկնոց', eng:'Coat'}] },
+  { arm: 'Ժ', lower: 'ժ', name: 'Zhe', sound: 'zh', ipa: '/ʒ/', desc: 'Sounds like the "s" in "measure" or "j" in French "je". A voiced postalveolar fricative.', words: [{arm:'Ժամ', eng:'Hour/Clock'},{arm:'Ժողովուրդ', eng:'People'},{arm:'Ժպիտ', eng:'Smile'}] },
+  { arm: 'Ի', lower: 'ի', name: 'Ini', sound: 'i', ipa: '/i/', desc: 'Sounds like "ee" in "feet". A high front vowel.', words: [{arm:'Ինչ', eng:'What'},{arm:'Ինձ', eng:'Me'},{arm:'Ինքը', eng:'Himself/Herself'}] },
+  { arm: 'Լ', lower: 'լ', name: 'Liwn', sound: 'l', ipa: '/l/', desc: 'Sounds like English "l". A lateral approximant.', words: [{arm:'Լույս', eng:'Light'},{arm:'Լավ', eng:'Good'},{arm:'Լեռ', eng:'Mountain'}] },
+  { arm: 'Խ', lower: 'խ', name: 'Khe', sound: 'kh', ipa: '/χ/', desc: 'Like the "ch" in Scottish "loch" or German "Bach". A uvular/velar fricative — no direct English equivalent.', words: [{arm:'Խոսք', eng:'Speech'},{arm:'Խնձոր', eng:'Apple'},{arm:'Խաղ', eng:'Game'}] },
+  { arm: 'Ծ', lower: 'ծ', name: 'Ca', sound: 'ts', ipa: '/ts/', desc: 'Sounds like "ts" in "cats". An affricate — the unaspirated version. Unique to Armenian among major languages.', words: [{arm:'Ծաղիկ', eng:'Flower'},{arm:'Ծով', eng:'Sea'},{arm:'Ծնունդ', eng:'Birthday'}] },
+  { arm: 'Կ', lower: 'կ', name: 'Ken', sound: 'k', ipa: '/k/', desc: 'Unaspirated "k" — like the "k" in "ski" (no puff of air). Different from the aspirated Ք.', words: [{arm:'Կյանք', eng:'Life'},{arm:'Կին', eng:'Woman/Wife'},{arm:'Կատու', eng:'Cat'}] },
+  { arm: 'Հ', lower: 'հ', name: 'Ho', sound: 'h', ipa: '/h/', desc: 'Sounds like English "h" in "hat". A glottal fricative.', words: [{arm:'Հայ', eng:'Armenian'},{arm:'Հաց', eng:'Bread'},{arm:'Հայաստան', eng:'Armenia'}] },
+  { arm: 'Ձ', lower: 'ձ', name: 'Ja', sound: 'dz', ipa: '/dz/', desc: 'Sounds like "dz" in "adze". The voiced counterpart of Ծ. Rare in most languages.', words: [{arm:'Ձուկ', eng:'Fish'},{arm:'Ձյուն', eng:'Snow'},{arm:'Ձի', eng:'Horse'}] },
+  { arm: 'Ղ', lower: 'ղ', name: 'Ghad', sound: 'gh', ipa: '/ɣ/', desc: 'A voiced uvular fricative — like a gargled "r" or the French "r". Very characteristic Armenian sound.', words: [{arm:'Ղեկ', eng:'Steering wheel'},{arm:'Ղողանջ', eng:'Chime'},{arm:'Ղազախ', eng:'Kazakh'}] },
+  { arm: 'Ճ', lower: 'ճ', name: 'Che', sound: 'ch', ipa: '/tʃ/', desc: 'Unaspirated "ch" like in "church" but without the puff of air. The unaspirated counterpart of Չ.', words: [{arm:'Ճամփա', eng:'Road/Journey'},{arm:'Ճաշ', eng:'Lunch/Meal'},{arm:'Ճիշտ', eng:'Correct'}] },
+  { arm: 'Մ', lower: 'մ', name: 'Men', sound: 'm', ipa: '/m/', desc: 'Sounds like English "m". A bilabial nasal.', words: [{arm:'Մայր', eng:'Mother'},{arm:'Մատ', eng:'Finger'},{arm:'Մարդ', eng:'Man/Person'}] },
+  { arm: 'Յ', lower: 'յ', name: 'Yi', sound: 'y', ipa: '/j/', desc: 'Sounds like "y" in "yes". In Eastern Armenian it mainly appears in the middle or end of words.', words: [{arm:'Մայիս', eng:'May'},{arm:'Յուղ', eng:'Oil/Fat'},{arm:'Արյուն', eng:'Blood'}] },
+  { arm: 'Ն', lower: 'ն', name: 'Now', sound: 'n', ipa: '/n/', desc: 'Sounds like English "n". An alveolar nasal.', words: [{arm:'Նոր', eng:'New'},{arm:'Ներս', eng:'Inside'},{arm:'Նամակ', eng:'Letter/Mail'}] },
+  { arm: 'Շ', lower: 'շ', name: 'Sha', sound: 'sh', ipa: '/ʃ/', desc: 'Sounds like English "sh" in "shop". A voiceless postalveolar fricative.', words: [{arm:'Շուն', eng:'Dog'},{arm:'Շատ', eng:'Many/Much'},{arm:'Շաբաթ', eng:'Week/Saturday'}] },
+  { arm: 'Ո', lower: 'ո', name: 'Vo', sound: 'vo/o', ipa: '/vo/ /o/', desc: 'At the start of a word sounds like "vo". In the middle/end sounds like "o" in "go".', words: [{arm:'Ոսկի', eng:'Gold'},{arm:'Ոտք', eng:'Foot/Leg'},{arm:'Ոչ', eng:'No'}] },
+  { arm: 'Չ', lower: 'չ', name: "Ch'a", sound: "ch'", ipa: '/tʃʰ/', desc: 'Aspirated "ch" — like "ch" in "church" with a puff of air. Also the word for "not" in Eastern Armenian.', words: [{arm:'Չ', eng:'Not'},{arm:'Չոր', eng:'Dry'},{arm:'Չորս', eng:'Four'}] },
+  { arm: 'Պ', lower: 'պ', name: 'Peh', sound: 'p', ipa: '/p/', desc: 'Unaspirated "p" — like "p" in "spin" (no puff of air). Different from the aspirated Փ.', words: [{arm:'Պապ', eng:'Grandfather'},{arm:'Պար', eng:'Dance'},{arm:'Պատ', eng:'Wall'}] },
+  { arm: 'Ջ', lower: 'ջ', name: 'Jheh', sound: 'j', ipa: '/dʒ/', desc: 'Sounds like "j" in "jump". A voiced postalveolar affricate.', words: [{arm:'Ջուր', eng:'Water'},{arm:'Ջերմ', eng:'Warm'},{arm:'Ջան', eng:'Dear (term of endearment)'}] },
+  { arm: 'Ռ', lower: 'ռ', name: 'Ra', sound: 'rr', ipa: '/r/', desc: 'A rolled/trilled "r". Stronger than the regular Ր. Similar to Spanish double "rr".', words: [{arm:'Ռադիո', eng:'Radio'},{arm:'Ռուս', eng:'Russian'},{arm:'Ռազմ', eng:'War/Army'}] },
+  { arm: 'Ս', lower: 'ս', name: 'Seh', sound: 's', ipa: '/s/', desc: 'Sounds like English "s" in "sun". A voiceless alveolar fricative.', words: [{arm:'Սեր', eng:'Love'},{arm:'Սուրճ', eng:'Coffee'},{arm:'Սիրտ', eng:'Heart'}] },
+  { arm: 'Վ', lower: 'վ', name: 'Vev', sound: 'v', ipa: '/v/', desc: 'Sounds like English "v" in "van". A voiced labiodental fricative.', words: [{arm:'Վարդ', eng:'Rose'},{arm:'Վատ', eng:'Bad'},{arm:'Վեց', eng:'Six'}] },
+  { arm: 'Տ', lower: 'տ', name: 'Tiwn', sound: 't', ipa: '/t/', desc: 'Unaspirated "t" — like "t" in "stop" (no puff of air). Different from the aspirated Թ.', words: [{arm:'Տուն', eng:'House'},{arm:'Տղա', eng:'Boy'},{arm:'Տարի', eng:'Year'}] },
+  { arm: 'Ր', lower: 'ր', name: 'Reh', sound: 'r', ipa: '/ɾ/', desc: 'A soft flap "r" — like the "r" in Spanish "pero". Lighter than the rolled Ռ.', words: [{arm:'Ուր', eng:'Where'},{arm:'Բառ', eng:'Word'},{arm:'Կարմիր', eng:'Red'}] },
+  { arm: 'Ց', lower: 'ց', name: "Tsa", sound: "ts'", ipa: '/tsʰ/', desc: 'Aspirated "ts" — like "ts" in "cats" with a puff of air. The aspirated counterpart of Ծ.', words: [{arm:'Ցածր', eng:'Low'},{arm:'Ցուրտ', eng:'Cold'},{arm:'Ցնծություն', eng:'Exultation'}] },
+  { arm: 'Ու', lower: 'ու', name: 'Yiwn', sound: 'u/w', ipa: '/u/ /v/', desc: 'This is a digraph (two letters combined). Sounds like "oo" in "moon". As a consonant before vowels it sounds like "v" or "w".', words: [{arm:'Ուտել', eng:'To eat'},{arm:'Ուժ', eng:'Strength'},{arm:'Ուրախ', eng:'Happy'}] },
+  { arm: 'Փ', lower: 'փ', name: "Piwr", sound: "p'", ipa: '/pʰ/', desc: 'Aspirated "p" — like "p" in "pot" with a strong puff of air. The aspirated counterpart of Պ.', words: [{arm:'Փոքր', eng:'Small'},{arm:'Փողոց', eng:'Street'},{arm:'Փայտ', eng:'Wood'}] },
+  { arm: 'Ք', lower: 'ք', name: "Keh", sound: "k'", ipa: '/kʰ/', desc: 'Aspirated "k" — like "k" in "keep" with a puff of air. The aspirated counterpart of Կ.', words: [{arm:'Քույր', eng:'Sister'},{arm:'Քաղաք', eng:'City'},{arm:'Քամի', eng:'Wind'}] },
+  { arm: 'Օ', lower: 'օ', name: 'Oh', sound: 'o', ipa: '/o/', desc: 'Sounds like "o" in "go". Unlike Ո at the start of a word, Օ always sounds like a pure "o" with no "v" sound.', words: [{arm:'Օդ', eng:'Air'},{arm:'Օր', eng:'Day'},{arm:'Օձ', eng:'Snake'}] },
+  { arm: 'Ֆ', lower: 'ֆ', name: 'Feh', sound: 'f', ipa: '/f/', desc: 'Sounds like English "f". Added by Mesrop Mashtots to write borrowed foreign words. Less common in native Armenian words.', words: [{arm:'Ֆրանսիա', eng:'France'},{arm:'Ֆիլմ', eng:'Film'},{arm:'Ֆուտբոլ', eng:'Football'}] },
+];
+
+let learnedLetters = new Set(JSON.parse(localStorage.getItem('learnedLetters') || '[]'));
+let currentLetter = null;
+
+// Quiz state
+let quizLetters = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+function saveLearned() {
+  localStorage.setItem('learnedLetters', JSON.stringify([...learnedLetters]));
+  document.getElementById('learnedCount').innerHTML = learnedLetters.size + ' <span style="font-size:0.8rem;color:var(--text-muted);font-family:\'DM Sans\',sans-serif;">/ 38</span>';
+}
+
+// ===== NAV =====
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'quiz') initQuiz();
+}
+
+// ===== DAILY =====
+function toggleTask(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('done');
+}
+
+function buildWeekDots() {
+  const days = ['M','T','W','T','F','S','S'];
+  const today = new Date().getDay(); // 0=Sun
+  const todayIdx = today === 0 ? 6 : today - 1;
+  const container = document.getElementById('weekDots');
+  days.forEach((d, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'day-dot' + (i < todayIdx ? ' done' : '') + (i === todayIdx ? ' today' : '');
+    dot.textContent = d;
+    container.appendChild(dot);
+  });
+}
+
+// ===== ALPHABET =====
+function buildAlphabet() {
+  const grid = document.getElementById('letterGrid');
+  grid.innerHTML = '';
+  letters.forEach((l, i) => {
+    const card = document.createElement('div');
+    card.className = 'letter-card' + (learnedLetters.has(i) ? ' learned' : '');
+    card.innerHTML = `
+      ${learnedLetters.has(i) ? '<div class="learned-dot"></div>' : ''}
+      <div class="armenian-char">${l.arm}</div>
+      <div class="latin-trans">${l.sound}</div>
+      <div class="letter-name">${l.name}</div>
+    `;
+    card.onclick = () => showLetterDetail(i, card);
+    grid.appendChild(card);
+  });
+}
+
+function showLetterDetail(idx, cardEl) {
+  document.querySelectorAll('.letter-card').forEach(c => c.classList.remove('active-card'));
+  cardEl.classList.add('active-card');
+  const l = letters[idx];
+  currentLetter = idx;
+  const detail = document.getElementById('letterDetail');
+  detail.className = 'letter-detail visible';
+  detail.innerHTML = `
+    <div style="text-align:center;">
+      <div class="detail-char">${l.arm}</div>
+      <div style="font-size:2rem;color:var(--text-muted);margin-top:0.25rem;">${l.lower}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--gold);margin-top:0.5rem;">${l.ipa}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">${l.name}</div>
+      <button class="mark-btn" onclick="toggleLearned(${idx})">${learnedLetters.has(idx) ? '✓ Learned' : 'Mark as Learned'}</button>
+    </div>
+    <div class="detail-info">
+      <h3>${l.name} — "${l.sound}"</h3>
+      <p>${l.desc}</p>
+      <div style="margin-top:1rem;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);">Pronunciation</div>
+      <p style="margin-top:0.4rem;font-size:0.85rem;color:var(--text-muted);">IPA: <span style="color:var(--text);font-family:'DM Mono',monospace;">${l.ipa}</span></p>
+    </div>
+    <div class="detail-words">
+      <h4>Example Words</h4>
+      ${l.words.map(w => `<div class="word-item"><div class="word-arm">${w.arm}</div><div class="word-eng">${w.eng}</div></div>`).join('')}
+    </div>
+  `;
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleLearned(idx) {
+  if (learnedLetters.has(idx)) {
+    learnedLetters.delete(idx);
+  } else {
+    learnedLetters.add(idx);
+  }
+  saveLearned();
+  buildAlphabet();
+  // Re-show detail
+  const cards = document.querySelectorAll('.letter-card');
+  showLetterDetail(idx, cards[idx]);
+}
+
+// ===== QUIZ =====
+function initQuiz() {
+  quizLetters = [...letters].sort(() => Math.random() - 0.5).slice(0, 15);
+  quizIndex = 0;
+  quizScore = 0;
+  quizAnswered = false;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (quizIndex >= quizLetters.length) {
+    showResult();
+    return;
+  }
+  const l = quizLetters[quizIndex];
+  document.getElementById('quizChar').textContent = l.arm;
+  document.getElementById('quizSub').textContent = l.name;
+  document.getElementById('quizScore').textContent = `Score: ${quizScore}/${quizIndex}`;
+  document.getElementById('quizProgress').style.width = (quizIndex / quizLetters.length * 100) + '%';
+  document.getElementById('nextBtn').classList.remove('visible');
+  quizAnswered = false;
+
+  // Build options
+  const opts = [l.sound];
+  while (opts.length < 4) {
+    const r = letters[Math.floor(Math.random() * letters.length)].sound;
+    if (!opts.includes(r)) opts.push(r);
+  }
+  opts.sort(() => Math.random() - 0.5);
+
+  const container = document.getElementById('quizOptions');
+  container.innerHTML = '';
+  opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(opt, l.sound, btn);
+    container.appendChild(btn);
+  });
+}
+
+function checkAnswer(selected, correct, btn) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const btns = document.querySelectorAll('.quiz-opt');
+  btns.forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct) b.classList.add('correct');
+  });
+  if (selected === correct) {
+    btn.classList.add('correct');
+    quizScore++;
+  } else {
+    btn.classList.add('wrong');
+  }
+  document.getElementById('nextBtn').classList.add('visible');
+}
+
+function nextQuestion() {
+  quizIndex++;
+  renderQuestion();
+}
+
+function showResult() {
+  document.getElementById('quizCard').innerHTML = `
+    <div class="quiz-prompt">Quiz Complete!</div>
+    <div class="quiz-char" style="font-size:3rem;">${quizScore >= 12 ? '🎉' : quizScore >= 8 ? '👍' : '📚'}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold);margin:0.5rem 0;">${quizScore} / ${quizLetters.length}</div>
+    <div class="quiz-subtext">${quizScore >= 12 ? 'Excellent! You know these letters well.' : quizScore >= 8 ? 'Good progress! Keep reviewing.' : 'Keep studying — it takes time!'}</div>
+  `;
+  document.getElementById('quizOptions').innerHTML = '';
+  document.getElementById('quizProgress').style.width = '100%';
+  document.getElementById('quizScore').textContent = `Final: ${quizScore}/${quizLetters.length}`;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = 'Try Again →';
+  nextBtn.classList.add('visible');
+  nextBtn.onclick = initQuiz;
+}
+
+// ===== DAY SWITCHER =====
+const daySubtitles = {
+  1: 'Ա Բ Գ Դ · First consonants & vowels',
+  2: 'Ե Զ Է Ը · Vowel mastery + 8-letter review'
+};
+function switchDay(day) {
+  document.getElementById('day1-content').style.display = day === 1 ? 'block' : 'none';
+  document.getElementById('day2-content').style.display = day === 2 ? 'block' : 'none';
+  document.getElementById('dsBtn1').classList.toggle('active', day === 1);
+  document.getElementById('dsBtn2').classList.toggle('active', day === 2);
+  const sub = document.getElementById('day-subtitle');
+  if (sub) sub.textContent = daySubtitles[day] || '';
+  if (day === 2) {
+    document.getElementById('body-d2-1').classList.add('open');
+    document.getElementById('chev-d2-1').classList.add('open');
+  }
+  if (day === 1) {
+    document.getElementById('body1').classList.add('open');
+    document.getElementById('chev1').classList.add('open');
+  }
+}
+
+function revealAnswers2() {
+  document.querySelectorAll('#body-d2-2 .recall-ans').forEach(el => el.style.display = 'block');
+}
+
+// ===== SESSION UI =====
+function toggleSession(id) {
+  let bodyId, chevId;
+  if (id.startsWith('d2session')) {
+    const n = id.replace('d2session','');
+    bodyId = 'body-d2-' + n;
+    chevId = 'chev-d2-' + n;
+  } else {
+    const n = id.replace('session','');
+    bodyId = 'body' + n;
+    chevId = 'chev' + n;
+  }
+  document.getElementById(bodyId).classList.toggle('open');
+  document.getElementById(chevId).classList.toggle('open');
+}
+
+// Default to Day 2 on load
+window.addEventListener('load', () => {
+  switchDay(2);
+});
+
+function markDone(badgeId, sessionId, btn) {
+  document.getElementById(badgeId).classList.add('visible');
+  document.getElementById(sessionId).classList.add('completed');
+  btn.textContent = '✓ Completed';
+  btn.disabled = true;
+}
+
+function revealAnswers() {
+  document.querySelectorAll('.recall-ans').forEach(el => el.style.display = 'block');
+}
+
+const ratingLabels = ['needs work', 'getting there', 'got it!'];
+function rate(letter, stars, el) {
+  const container = el.closest('.rating-stars');
+  const spans = container.querySelectorAll('span');
+  spans.forEach((s, i) => s.classList.toggle('lit', i < stars));
+  document.getElementById('r' + letter).textContent = ratingLabels[stars - 1];
+}
+
+
+buildWeekDots();
+buildAlphabet();
+saveLearned();
+initQuiz();
+</script>
 </body>
 </html>
