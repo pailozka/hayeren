@@ -25,14 +25,20 @@ function buildWeekDots() {
 // ===== DAY SWITCHER =====
 const daySubtitles = {
   1: 'Ա Բ Գ Դ · First consonants & vowels',
-  2: 'Ե Զ Է Ը · Vowel mastery + 8-letter review'
+  2: 'Ե Զ Է Ը · Vowel mastery + 8-letter review',
+  3: 'Թ Ժ Ի Լ Խ Ծ · Consonant mastery + Armenian-unique sounds',
+  4: 'Կ + Full Review · End of Block 1'
 };
 
 function switchDay(day) {
   document.getElementById('day1-content').style.display = day === 1 ? 'block' : 'none';
   document.getElementById('day2-content').style.display = day === 2 ? 'block' : 'none';
+  document.getElementById('day3-content').style.display = day === 3 ? 'block' : 'none';
+  document.getElementById('day4-content').style.display = day === 4 ? 'block' : 'none';
   document.getElementById('dsBtn1').classList.toggle('active', day === 1);
   document.getElementById('dsBtn2').classList.toggle('active', day === 2);
+  document.getElementById('dsBtn3').classList.toggle('active', day === 3);
+  document.getElementById('dsBtn4').classList.toggle('active', day === 4);
   const sub = document.getElementById('day-subtitle');
   if (sub) sub.textContent = daySubtitles[day] || '';
 
@@ -44,12 +50,28 @@ function switchDay(day) {
     document.getElementById('body-d2-1').classList.add('open');
     document.getElementById('chev-d2-1').classList.add('open');
   }
+  if (day === 3) {
+    document.getElementById('body-d3-1').classList.add('open');
+    document.getElementById('chev-d3-1').classList.add('open');
+  }
+  if (day === 4) {
+    document.getElementById('body-d4-1').classList.add('open');
+    document.getElementById('chev-d4-1').classList.add('open');
+  }
 }
 
 // ===== SESSION TOGGLE =====
 function toggleSession(id) {
   let bodyId, chevId;
-  if (id.startsWith('d2session')) {
+  if (id.startsWith('d4session')) {
+    const n = id.replace('d4session', '');
+    bodyId = 'body-d4-' + n;
+    chevId = 'chev-d4-' + n;
+  } else if (id.startsWith('d3session')) {
+    const n = id.replace('d3session', '');
+    bodyId = 'body-d3-' + n;
+    chevId = 'chev-d3-' + n;
+  } else if (id.startsWith('d2session')) {
     const n = id.replace('d2session', '');
     bodyId = 'body-d2-' + n;
     chevId = 'chev-d2-' + n;
@@ -84,9 +106,20 @@ function revealAnswers2() {
   document.querySelectorAll('#body-d2-2 .recall-ans').forEach(el => el.style.display = 'block');
 }
 
+function revealAnswersD4() {
+  document.querySelectorAll('#body-d4-2 .recall-ans').forEach(el => el.style.display = 'block');
+}
+
 // ===== SELF-RATING =====
 const ratingLabels = ['needs work', 'getting there', 'got it!'];
 function rate(letter, stars, el) {
+  const container = el.closest('.rating-stars');
+  const spans = container.querySelectorAll('span');
+  spans.forEach((s, i) => s.classList.toggle('lit', i < stars));
+  document.getElementById('r' + letter).textContent = ratingLabels[stars - 1];
+}
+
+function rateD(letter, stars, el) {
   const container = el.closest('.rating-stars');
   const spans = container.querySelectorAll('span');
   spans.forEach((s, i) => s.classList.toggle('lit', i < stars));
@@ -97,6 +130,8 @@ function rate(letter, stars, el) {
 function initDailyTaskStates() {
   const day1Sessions = ['session1', 'session2', 'session3', 'session4'];
   const day2Sessions = ['d2session1', 'd2session2', 'd2session3', 'd2session4'];
+  const day3Sessions = ['d3session1', 'd3session2', 'd3session3', 'd3session4'];
+  const day4Sessions = ['d4session1', 'd4session2', 'd4session3', 'd4session4'];
 
   day1Sessions.forEach(id => {
     if (isTaskDoneToday(id)) {
@@ -113,6 +148,26 @@ function initDailyTaskStates() {
       document.getElementById(id)?.classList.add('completed');
       const n = id.replace('d2session', '');
       document.getElementById('badge-d2-' + n)?.classList.add('visible');
+      const btn = document.getElementById(id)?.querySelector('.complete-btn');
+      if (btn) { btn.textContent = '✓ Completed'; btn.disabled = true; }
+    }
+  });
+
+  day3Sessions.forEach(id => {
+    if (isTaskDoneToday(id)) {
+      document.getElementById(id)?.classList.add('completed');
+      const n = id.replace('d3session', '');
+      document.getElementById('badge-d3-' + n)?.classList.add('visible');
+      const btn = document.getElementById(id)?.querySelector('.complete-btn');
+      if (btn) { btn.textContent = '✓ Completed'; btn.disabled = true; }
+    }
+  });
+
+  day4Sessions.forEach(id => {
+    if (isTaskDoneToday(id)) {
+      document.getElementById(id)?.classList.add('completed');
+      const n = id.replace('d4session', '');
+      document.getElementById('badge-d4-' + n)?.classList.add('visible');
       const btn = document.getElementById(id)?.querySelector('.complete-btn');
       if (btn) { btn.textContent = '✓ Completed'; btn.disabled = true; }
     }
