@@ -128,6 +128,12 @@ function checkLetterAnswer(selected, correct, btn) {
   quizAnswered = true;
   markOptions(selected, correct);
   if (selected === correct) quizScore++;
+
+  const l = quizLetters[quizIndex];
+  const idx = letters.indexOf(l);
+  if (idx !== -1) reviewItem('letter', idx, selected === correct ? 'good' : 'hard');
+  bumpReviewCount(1);
+
   recordActivity();
   updateStreakDisplay();
   buildWeekDots();
@@ -232,6 +238,11 @@ function checkWordAnswer(selected, correct, btn) {
   wordQuizAnswered = true;
   markOptions(selected, correct);
   if (selected === correct) wordQuizScore++;
+
+  const w = wordQuizItems[wordQuizIndex];
+  if (w) reviewItem('word', w.id, selected === correct ? 'good' : 'hard');
+  bumpReviewCount(1);
+
   recordActivity();
   updateStreakDisplay();
   buildWeekDots();

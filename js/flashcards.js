@@ -95,10 +95,11 @@ function renderFlashcard() {
       <div class="fc-label">Armenian Letter</div>
       <div class="fc-arm-char">${item.arm}</div>
       <div class="fc-romanized">${item.lower} · ${item.name}</div>
+      <div style="margin-top:0.6rem;">${speakButton(item.lower, 'Hear ' + item.name)}</div>
     `;
     backEl.innerHTML = `
       <div class="fc-label">Sound &amp; Details</div>
-      <div class="fc-translation">"${item.sound}"</div>
+      <div class="fc-translation">"${item.sound}" ${speakButton(item.lower, 'Hear ' + item.name)}</div>
       <div class="fc-ipa">${item.ipa}</div>
       <div class="fc-desc">${item.desc}</div>
     `;
@@ -107,11 +108,13 @@ function renderFlashcard() {
       <div class="fc-label">Armenian</div>
       <div class="fc-arm-char" style="font-size:3rem;">${item.arm}</div>
       <div class="fc-romanized">${item.romanized}</div>
+      <div style="margin-top:0.6rem;">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
     `;
     backEl.innerHTML = `
       <div class="fc-label">English</div>
       <div class="fc-translation">${item.eng}</div>
       <div class="fc-ipa">${item.ipa}</div>
+      <div style="margin-top:0.6rem;">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
     `;
   }
 }
@@ -131,16 +134,34 @@ function flipCard() {
 }
 
 function rateCard(rating) {
-  if (rating === 'hard') {
-    // Re-queue at end
-    fcItems.push(fcItems[fcIndex]);
+  const item = fcItems[fcIndex];
+  if (item) {
+    const type = fcDeck === 'letters' ? 'letter' : 'word';
+    const id = fcDeck === 'letters' ? letters.indexOf(item) : item.id;
+    const rec = reviewItem(type, id, rating);
+    bumpReviewCount(1);
+    showNextReviewHint(rec);
   }
+
+  // A lapse still comes back later in this session, on top of being
+  // rescheduled for tomorrow.
+  if (rating === 'hard') fcItems.push(item);
+
   fcIndex++;
   if (fcIndex >= fcItems.length) {
     showFlashcardComplete();
   } else {
     renderFlashcard();
   }
+}
+
+function showNextReviewHint(rec) {
+  const hint = document.getElementById('fcNextDue');
+  if (!hint || !rec) return;
+  const days = rec.interval;
+  hint.textContent = days <= 1 ? 'Back tomorrow' : `Next review in ${days} days`;
+  hint.classList.add('visible');
+  setTimeout(() => hint.classList.remove('visible'), 1600);
 }
 
 function showFlashcardComplete() {

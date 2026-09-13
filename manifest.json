@@ -5,8 +5,8 @@
   "start_url": "/hayeren/",
   "scope": "/hayeren/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#fdf6ee",
+  "theme_color": "#d4703a",
   "orientation": "portrait",
   "icons": [
     {

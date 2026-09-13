@@ -59,7 +59,7 @@ function renderPhrases(catId, clickedBtn) {
       : '';
 
     card.innerHTML = `
-      <div class="phrase-arm">${p.arm}</div>
+      <div class="phrase-arm">${p.arm} ${speakButton(p.arm, 'Hear this phrase')}</div>
       <div class="phrase-romanized">${p.romanized}</div>
       <div class="phrase-eng">${p.eng}</div>
       <div class="phrase-details">

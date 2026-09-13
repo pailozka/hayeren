@@ -7,6 +7,9 @@ const KEYS = {
   learnedLetters:'hayeren_learnedLetters',
   learnedWords:  'hayeren_learnedWords',
   tasksDone:     'hayeren_tasksDone',
+  srs:           'hayeren_srs',
+  dayProgress:   'hayeren_dayProgress',
+  reviewCounts:  'hayeren_reviewCounts',
 };
 
 // ---- Helpers ----
@@ -125,6 +128,76 @@ function toggleTaskDoneInStorage(taskId) {
   return all[today].includes(taskId); // returns new done state
 }
 
+// ---- Spaced Repetition ----
+
+function loadSrsData() {
+  const raw = localStorage.getItem(KEYS.srs);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
+function saveSrsData(obj) {
+  localStorage.setItem(KEYS.srs, JSON.stringify(obj));
+}
+
+// ---- Day Progress ----
+// Session completion is permanent per curriculum day, unlike tasksDone which
+// is scoped to a calendar date. Shape: { "3": ["s1","s2"], ... }
+
+function loadDayProgress() {
+  const raw = localStorage.getItem(KEYS.dayProgress);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
+function saveDayProgress(obj) {
+  localStorage.setItem(KEYS.dayProgress, JSON.stringify(obj));
+}
+
+function isSessionComplete(dayNum, sessionKey) {
+  const all = loadDayProgress();
+  return Array.isArray(all[dayNum]) && all[dayNum].includes(sessionKey);
+}
+
+function markSessionComplete(dayNum, sessionKey) {
+  const all = loadDayProgress();
+  if (!Array.isArray(all[dayNum])) all[dayNum] = [];
+  if (!all[dayNum].includes(sessionKey)) all[dayNum].push(sessionKey);
+  saveDayProgress(all);
+}
+
+function getDayCompletion(dayNum) {
+  const day = getDay(dayNum);
+  if (!day) return { done: 0, total: 0 };
+  const all = loadDayProgress();
+  const done = Array.isArray(all[dayNum]) ? all[dayNum].length : 0;
+  return { done: Math.min(done, day.sessions.length), total: day.sessions.length };
+}
+
+// The furthest day with every session complete, +1 — i.e. where to resume.
+function getCurrentDay() {
+  for (const day of curriculum) {
+    const { done, total } = getDayCompletion(day.day);
+    if (done < total) return day.day;
+  }
+  return curriculum[curriculum.length - 1].day;
+}
+
+// ---- Review Counts (per-day study volume, for the heatmap) ----
+
+function loadReviewCounts() {
+  const raw = localStorage.getItem(KEYS.reviewCounts);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
+function bumpReviewCount(n) {
+  const all = loadReviewCounts();
+  const today = isoToday();
+  all[today] = (all[today] || 0) + (n || 1);
+  localStorage.setItem(KEYS.reviewCounts, JSON.stringify(all));
+}
+
 // ---- Streak Display ----
 
 function updateStreakDisplay() {
@@ -134,4 +207,6 @@ function updateStreakDisplay() {
     const word = data.currentStreak === 1 ? 'day' : 'days';
     el.innerHTML = `${data.currentStreak} <span>${word}</span>`;
   }
+  const longest = document.getElementById('longestStreak');
+  if (longest) longest.textContent = data.longestStreak;
 }

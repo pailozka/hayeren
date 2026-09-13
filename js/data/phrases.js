@@ -38,12 +38,62 @@ const phrases = [
   { id: 'ph028', arm: 'Անգլերեն գիտե՞ք', romanized: "Angleeren gite՞q", ipa: '/ɑŋɡlɛˈɾɛn ɡiˈtɛkʰ/', eng: 'Do you know English?', literal: 'English know (formal)', category: 'practical', usage: 'Useful when you get stuck and need a language bridge.' },
   { id: 'ph029', arm: 'Օգնեք ինձ', romanized: 'Ogneq indz', ipa: '/oɡˈnɛkʰ indz/', eng: 'Help me!', literal: 'Help me (formal)', category: 'practical', usage: 'Emergency request for help. Also works in non-emergency situations.' },
   { id: 'ph030', arm: 'Ուրախ եմ ծանոթանալու', romanized: 'Urakh yem tsanothanalu', ipa: '/uˈɾɑχ jɛm tsɑnoθɑˈnɑlu/', eng: 'Nice to meet you', literal: 'Happy am to meet', category: 'greetings', usage: 'Used when meeting someone for the first time.' },
+
+  // Introductions & self
+  { id: 'ph031', arm: 'Իմ անունը ... է', romanized: 'Im anunə ... e', ipa: '/im ɑˈnunə ɛ/', eng: 'My name is ...', literal: 'My name ... is', category: 'greetings', usage: 'Put your name in the gap. The most useful sentence you will learn.' },
+  { id: 'ph032', arm: 'Ես ... -ից եմ', romanized: 'Yes ... -its em', ipa: '/jɛs its ɛm/', eng: 'I am from ...', literal: 'I ...-from am', category: 'greetings', usage: 'The suffix -ից attaches to the place name: Ես Լոնդոնից եմ.' },
+  { id: 'ph033', arm: 'Ի՞նչ ես անում', romanized: 'Inch es anum', ipa: '/intʃ ɛs ɑˈnum/', eng: 'What do you do?', literal: 'What are you doing', category: 'conversation', usage: 'Asks about work or about what someone is doing right now — context decides.' },
+
+  // Family
+  { id: 'ph034', arm: 'Ամուսնացա՞ծ ես', romanized: "Amusnatsats es", ipa: '/ɑmusnɑˈtsɑts ɛs/', eng: 'Are you married?', literal: 'Married are you', category: 'family', usage: 'A normal, non-intrusive question in Armenian small talk.' },
+  { id: 'ph035', arm: 'Երեխաներ ունե՞ս', romanized: 'Yerekhaner unes', ipa: '/jɛɾɛχɑˈnɛɾ uˈnɛs/', eng: 'Do you have children?', literal: 'Children have you', category: 'family', usage: 'Ունեմ = I have. Answer: Այո, ունեմ / Ոչ, չունեմ.' },
+  { id: 'ph036', arm: 'Սա իմ ընտանիքն է', romanized: "Sa im əntanik'n e", ipa: '/sɑ im əntɑˈnikʰn ɛ/', eng: 'This is my family', literal: 'This my family is', category: 'family', usage: 'Use when showing a photo or introducing people.' },
+  { id: 'ph037', arm: 'Ես երկու քույր ունեմ', romanized: "Yes yerku k'uyr unem", ipa: '/jɛs jɛɾˈku kʰujɾ uˈnɛm/', eng: 'I have two sisters', literal: 'I two sister have', category: 'family', usage: 'Note: the noun stays singular after a number in Armenian.' },
+
+  // Food & restaurant
+  { id: 'ph038', arm: 'Ես ուզում եմ ...', romanized: 'Yes uzum em ...', ipa: '/jɛs uˈzum ɛm/', eng: 'I would like ...', literal: 'I wanting am', category: 'food', usage: 'The polite all-purpose way to order. Follow with the dish.' },
+  { id: 'ph039', arm: 'Ճաշացանկը, խնդրեմ', romanized: "Chashatsankə, khndrem", ipa: '/tʃɑʃɑˈtsɑŋkə χndˈɾɛm/', eng: 'The menu, please', literal: 'The menu, please', category: 'food', usage: 'Say this on sitting down at a restaurant.' },
+  { id: 'ph040', arm: 'Հաշիվը, խնդրեմ', romanized: 'Hashivə, khndrem', ipa: '/hɑˈʃivə χndˈɾɛm/', eng: 'The bill, please', literal: 'The bill, please', category: 'food', usage: 'Ask for the check at the end of a meal.' },
+  { id: 'ph041', arm: 'Շատ համեղ է', romanized: 'Shat hamegh e', ipa: '/ʃɑt hɑˈmɛʁ ɛ/', eng: 'It is very delicious', literal: 'Very delicious is', category: 'food', usage: 'Always well received by an Armenian host.' },
+  { id: 'ph042', arm: 'Ես բուսակեր եմ', romanized: 'Yes busaker em', ipa: '/jɛs busɑˈkɛɾ ɛm/', eng: 'I am vegetarian', literal: 'I vegetarian am', category: 'food', usage: 'Useful — Armenian cuisine is meat-heavy but has excellent vegetable dishes.' },
+
+  // Shopping
+  { id: 'ph043', arm: 'Ինչ արժե՞', romanized: 'Inch arzhe', ipa: '/intʃ ɑɾˈʒɛ/', eng: 'How much does it cost?', literal: 'What costs', category: 'shopping', usage: 'The everyday spoken form. Shorter than Ո՞րն է գինը.' },
+  { id: 'ph044', arm: 'Շատ թանկ է', romanized: "Shat t'ank e", ipa: '/ʃɑt tʰɑŋk ɛ/', eng: 'It is too expensive', literal: 'Very expensive is', category: 'shopping', usage: 'Opening move when bargaining at a market like Vernissage.' },
+  { id: 'ph045', arm: 'Սա կվերցնեմ', romanized: 'Sa kvertsnem', ipa: '/sɑ kvɛɾtsˈnɛm/', eng: "I'll take this", literal: 'This I will take', category: 'shopping', usage: 'Point at the item as you say it.' },
+  { id: 'ph046', arm: 'Քարտով կարելի՞ է', romanized: "K'artov kareli e", ipa: '/kʰɑɾˈtov kɑɾɛˈli ɛ/', eng: 'Can I pay by card?', literal: 'By card possible is', category: 'shopping', usage: 'Many small shops in Armenia are still cash-only.' },
+
+  // Directions & transport
+  { id: 'ph047', arm: 'Որտե՞ղ է ...', romanized: 'Vortegh e ...', ipa: '/voɾˈtɛʁ ɛ/', eng: 'Where is ...?', literal: 'Where is', category: 'directions', usage: 'For a fixed location. Ո՞ւր է asks where something is going.' },
+  { id: 'ph048', arm: 'Ուղիղ գնացեք', romanized: "Ughigh gnats'ek'", ipa: '/uˈʁiʁ ɡnɑˈtsɛkʰ/', eng: 'Go straight ahead', literal: 'Straight go (formal)', category: 'directions', usage: 'What you will hear in reply when you ask directions.' },
+  { id: 'ph049', arm: 'Աջ / ձախ թեքվեք', romanized: "Aj / dzakh t'ek'vek'", ipa: '/ɑdʒ dzɑχ tʰɛkʰˈvɛkʰ/', eng: 'Turn right / left', literal: 'Right / left turn (formal)', category: 'directions', usage: 'Learn both — they come fast in spoken replies.' },
+  { id: 'ph050', arm: 'Ինչքա՞ն հեռու է', romanized: "Inchk'an herru e", ipa: '/intʃˈkʰɑn hɛˈru ɛ/', eng: 'How far is it?', literal: 'How much far is', category: 'directions', usage: 'Follow up after asking where something is.' },
+  { id: 'ph051', arm: 'Ես կորել եմ', romanized: 'Yes korel em', ipa: '/jɛs koˈɾɛl ɛm/', eng: 'I am lost', literal: 'I lost am', category: 'directions', usage: 'Gets you immediate help almost anywhere in Armenia.' },
+
+  // Time
+  { id: 'ph052', arm: 'Ժամը քանի՞սն է', romanized: "Zhamə k'anisn e", ipa: '/ʒɑˈmə kʰɑˈnisn ɛ/', eng: 'What time is it?', literal: 'The hour how-many is', category: 'time', usage: 'The standard way to ask the time.' },
+  { id: 'ph053', arm: 'Ժամը երեքն է', romanized: "Zhamə yerek'n e", ipa: '/ʒɑˈmə jɛˈɾɛkʰn ɛ/', eng: 'It is three o\'clock', literal: 'The hour three is', category: 'time', usage: 'Swap in any number to tell the time.' },
+  { id: 'ph054', arm: 'Ե՞րբ ես ազատ', romanized: 'Yerb es azat', ipa: '/jɛɾb ɛs ɑˈzɑt/', eng: 'When are you free?', literal: 'When are you free', category: 'time', usage: 'For making plans with a friend.' },
+  { id: 'ph055', arm: 'Վաղը կտեսնվենք', romanized: "Vaghə ktesnvenk'", ipa: '/vɑˈʁə ktɛsnˈvɛnkʰ/', eng: 'See you tomorrow', literal: 'Tomorrow we will see each other', category: 'time', usage: 'A warm way to close a conversation.' },
+
+  // Conversation & small talk
+  { id: 'ph056', arm: 'Ի՞նչ նոր կա', romanized: 'Inch nor ka', ipa: '/intʃ noɾ kɑ/', eng: "What's new?", literal: 'What new is there', category: 'conversation', usage: 'Casual opener between friends.' },
+  { id: 'ph057', arm: 'Համաձայն եմ', romanized: "Hamadzayn em", ipa: '/hɑmɑˈdzɑjn ɛm/', eng: 'I agree', literal: 'Agreeing am', category: 'conversation', usage: 'Useful in any discussion.' },
+  { id: 'ph058', arm: 'Չգիտեմ', romanized: "Ch'gitem", ipa: '/tʃʰɡiˈtɛm/', eng: "I don't know", literal: 'Not I know', category: 'conversation', usage: 'The չ- prefix negates the verb — a core pattern in Armenian.' },
+  { id: 'ph059', arm: 'Իսկ դու՞', romanized: 'Isk du', ipa: '/isk du/', eng: 'And you?', literal: 'And you', category: 'conversation', usage: 'Turns any answer back into a question. Keeps conversations alive.' },
+  { id: 'ph060', arm: 'Շատ հետաքրքիր է', romanized: "Shat hetak'rk'ir e", ipa: '/ʃɑt hɛtɑkʰɾˈkʰiɾ ɛ/', eng: 'That is very interesting', literal: 'Very interesting is', category: 'conversation', usage: 'A safe, friendly response when you follow only part of what was said.' },
 ];
 
 const phraseCategories = [
-  { id: 'greetings',  label: 'Greetings & Farewells' },
-  { id: 'courtesy',   label: 'Courtesy Phrases' },
-  { id: 'questions',  label: 'Useful Questions' },
-  { id: 'feelings',   label: 'Feelings & States' },
-  { id: 'practical',  label: 'Practical' },
+  { id: 'greetings',    label: 'Greetings & Farewells' },
+  { id: 'courtesy',     label: 'Courtesy Phrases' },
+  { id: 'questions',    label: 'Useful Questions' },
+  { id: 'feelings',     label: 'Feelings & States' },
+  { id: 'practical',    label: 'Practical' },
+  { id: 'family',       label: 'Family' },
+  { id: 'food',         label: 'Food & Restaurant' },
+  { id: 'shopping',     label: 'Shopping' },
+  { id: 'directions',   label: 'Directions' },
+  { id: 'time',         label: 'Time' },
+  { id: 'conversation', label: 'Small Talk' },
 ];

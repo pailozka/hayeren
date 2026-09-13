@@ -1114,6 +1114,31 @@ nav {
   opacity: 0.85;
 }
 
+/* ======= PRONUNCIATION BUTTON ======= */
+.speak-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gold);
+  font-size: 0.8rem;
+  line-height: 1;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  vertical-align: middle;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.speak-btn:hover {
+  background: var(--apricot-pale);
+  border-color: var(--gold);
+}
+
+.speak-btn:active {
+  transform: scale(0.92);
+}
+
 /* ======= QUIZ ======= */
 .quiz-section {
   max-width: 700px;

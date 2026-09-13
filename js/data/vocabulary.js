@@ -1,56 +1,237 @@
+// ===== VOCABULARY =====
+// Eastern Armenian, CEFR A1-A2 range. Topic grouping follows the standard
+// beginner sequence (greetings, family, numbers, food, verbs, then everyday
+// domains) used by Sakayan's "Eastern Armenian for the English-Speaking
+// World" and the Peace Corps Armenian course.
+//
+// `ə` in romanization is the schwa (Ը) — often written but always pronounced.
+// The definite article -ը / -ն is shown where it is idiomatic.
+
 const vocabulary = [
-  // Greetings
+  // ---- Greetings & courtesy ----
   { id: 'w001', arm: 'Բարև', romanized: 'Barev', ipa: '/bɑˈɾɛv/', eng: 'Hello', category: 'greetings', difficulty: 1 },
   { id: 'w002', arm: 'Ցտեսություն', romanized: "Ts'tesut'yun", ipa: '/tsʰtɛsuˈtʲun/', eng: 'Goodbye', category: 'greetings', difficulty: 1 },
   { id: 'w003', arm: 'Այո', romanized: 'Ayo', ipa: '/ɑˈjo/', eng: 'Yes', category: 'greetings', difficulty: 1 },
   { id: 'w004', arm: 'Ոչ', romanized: 'Voch', ipa: '/votʃ/', eng: 'No', category: 'greetings', difficulty: 1 },
-  { id: 'w005', arm: 'Շնորհակալություն', romanized: "Shnorhakalu't'yun", ipa: '/ʃnoɾhɑkɑluˈtʲun/', eng: 'Thank you', category: 'greetings', difficulty: 1 },
-  { id: 'w006', arm: 'Խնդրեմ', romanized: 'Khndrem', ipa: '/χndˈɾɛm/', eng: 'Please / You\'re welcome', category: 'greetings', difficulty: 1 },
+  { id: 'w005', arm: 'Շնորհակալություն', romanized: "Shnorhakalut'yun", ipa: '/ʃnoɾhɑkɑluˈtʲun/', eng: 'Thank you', category: 'greetings', difficulty: 1 },
+  { id: 'w006', arm: 'Խնդրեմ', romanized: 'Khndrem', ipa: '/χndˈɾɛm/', eng: "Please / You're welcome", category: 'greetings', difficulty: 1 },
+  { id: 'w072', arm: 'Բարի լույս', romanized: 'Bari luys', ipa: '/bɑˈɾi lujs/', eng: 'Good morning', category: 'greetings', difficulty: 1 },
+  { id: 'w073', arm: 'Բարի երեկո', romanized: 'Bari yereko', ipa: '/bɑˈɾi jɛɾɛˈko/', eng: 'Good evening', category: 'greetings', difficulty: 1 },
+  { id: 'w074', arm: 'Բարի գիշեր', romanized: 'Bari gisher', ipa: '/bɑˈɾi ɡiˈʃɛɾ/', eng: 'Good night', category: 'greetings', difficulty: 1 },
+  { id: 'w075', arm: 'Ներողություն', romanized: "Neroghut'yun", ipa: '/nɛɾoɣuˈtʲun/', eng: 'Excuse me / Sorry', category: 'greetings', difficulty: 2 },
+  { id: 'w076', arm: 'Ինչպե՞ս ես', romanized: 'Inchpes es', ipa: '/intʃˈpɛs ɛs/', eng: 'How are you?', category: 'greetings', difficulty: 1 },
+  { id: 'w077', arm: 'Լավ', romanized: 'Lav', ipa: '/lɑv/', eng: 'Good / Well', category: 'greetings', difficulty: 1 },
 
-  // Family
+  // ---- Family & people ----
   { id: 'w007', arm: 'Մայր', romanized: 'Mayr', ipa: '/mɑjɾ/', eng: 'Mother', category: 'family', difficulty: 1 },
   { id: 'w008', arm: 'Հայր', romanized: 'Hayr', ipa: '/hɑjɾ/', eng: 'Father', category: 'family', difficulty: 1 },
   { id: 'w009', arm: 'Եղբայր', romanized: 'Yeghbayr', ipa: '/jɛɣˈbɑjɾ/', eng: 'Brother', category: 'family', difficulty: 1 },
   { id: 'w010', arm: 'Քույր', romanized: "K'uyr", ipa: '/kʰujɾ/', eng: 'Sister', category: 'family', difficulty: 1 },
-  { id: 'w011', arm: 'Ընտանիք', romanized: 'Əntanik', ipa: '/əntɑˈnik/', eng: 'Family', category: 'family', difficulty: 1 },
+  { id: 'w011', arm: 'Ընտանիք', romanized: 'Əntanik', ipa: '/əntɑˈnikʰ/', eng: 'Family', category: 'family', difficulty: 1 },
+  { id: 'w035', arm: 'Ընկեր', romanized: 'Ənker', ipa: '/ənˈkɛɾ/', eng: 'Friend', category: 'family', difficulty: 1 },
+  { id: 'w036', arm: 'Մարդ', romanized: 'Mard', ipa: '/mɑɾd/', eng: 'Person / Man', category: 'family', difficulty: 1 },
+  { id: 'w038', arm: 'Տատիկ', romanized: 'Tatik', ipa: '/tɑˈtik/', eng: 'Grandmother', category: 'family', difficulty: 1 },
+  { id: 'w039', arm: 'Պապիկ', romanized: 'Papik', ipa: '/pɑˈpik/', eng: 'Grandfather', category: 'family', difficulty: 1 },
+  { id: 'w078', arm: 'Կին', romanized: 'Kin', ipa: '/kin/', eng: 'Woman / Wife', category: 'family', difficulty: 1 },
+  { id: 'w079', arm: 'Երեխա', romanized: 'Yerekha', ipa: '/jɛɾɛˈχɑ/', eng: 'Child', category: 'family', difficulty: 1 },
+  { id: 'w080', arm: 'Տղա', romanized: 'Tgha', ipa: '/tʁɑ/', eng: 'Boy / Son', category: 'family', difficulty: 1 },
+  { id: 'w081', arm: 'Աղջիկ', romanized: 'Aghjik', ipa: '/ɑʁˈdʒik/', eng: 'Girl / Daughter', category: 'family', difficulty: 1 },
+  { id: 'w082', arm: 'Անուն', romanized: 'Anun', ipa: '/ɑˈnun/', eng: 'Name', category: 'family', difficulty: 1 },
 
-  // Food & Drink
+  // ---- Food & drink ----
   { id: 'w012', arm: 'Հաց', romanized: 'Hats', ipa: '/hɑts/', eng: 'Bread', category: 'food', difficulty: 1 },
   { id: 'w013', arm: 'Ջուր', romanized: 'Jur', ipa: '/dʒuɾ/', eng: 'Water', category: 'food', difficulty: 1 },
   { id: 'w014', arm: 'Սուրճ', romanized: 'Surj', ipa: '/suɾdʒ/', eng: 'Coffee', category: 'food', difficulty: 1 },
   { id: 'w015', arm: 'Կաթ', romanized: 'Kat', ipa: '/kɑtʰ/', eng: 'Milk', category: 'food', difficulty: 1 },
   { id: 'w016', arm: 'Պանիր', romanized: 'Panir', ipa: '/pɑˈniɾ/', eng: 'Cheese', category: 'food', difficulty: 1 },
   { id: 'w017', arm: 'Միս', romanized: 'Mis', ipa: '/mis/', eng: 'Meat', category: 'food', difficulty: 1 },
+  { id: 'w044', arm: 'Թեյ', romanized: "T'ey", ipa: '/tʰɛj/', eng: 'Tea', category: 'food', difficulty: 1 },
+  { id: 'w045', arm: 'Միրգ', romanized: 'Mirg', ipa: '/miɾɡ/', eng: 'Fruit', category: 'food', difficulty: 1 },
+  { id: 'w046', arm: 'Բանջարեղեն', romanized: 'Banjareghen', ipa: '/bɑndʒɑɾɛˈʁɛn/', eng: 'Vegetables', category: 'food', difficulty: 2 },
+  { id: 'w083', arm: 'Խնձոր', romanized: 'Khndzor', ipa: '/χnˈdzoɾ/', eng: 'Apple', category: 'food', difficulty: 1 },
+  { id: 'w084', arm: 'Ձուկ', romanized: 'Dzuk', ipa: '/dzuk/', eng: 'Fish', category: 'food', difficulty: 1 },
+  { id: 'w085', arm: 'Ձու', romanized: 'Dzu', ipa: '/dzu/', eng: 'Egg', category: 'food', difficulty: 1 },
+  { id: 'w086', arm: 'Աղ', romanized: 'Agh', ipa: '/ɑʁ/', eng: 'Salt', category: 'food', difficulty: 1 },
+  { id: 'w087', arm: 'Շաքար', romanized: "Shak'ar", ipa: '/ʃɑˈkʰɑɾ/', eng: 'Sugar', category: 'food', difficulty: 1 },
+  { id: 'w088', arm: 'Ճաշ', romanized: 'Chash', ipa: '/tʃɑʃ/', eng: 'Meal / Lunch', category: 'food', difficulty: 1 },
+  { id: 'w089', arm: 'Գինի', romanized: 'Gini', ipa: '/ɡiˈni/', eng: 'Wine', category: 'food', difficulty: 1 },
+  { id: 'w090', arm: 'Լավաշ', romanized: 'Lavash', ipa: '/lɑˈvɑʃ/', eng: 'Lavash (flatbread)', category: 'food', difficulty: 1 },
+  { id: 'w091', arm: 'Մածուն', romanized: 'Matsun', ipa: '/mɑˈtsun/', eng: 'Yogurt (matsun)', category: 'food', difficulty: 2 },
 
-  // Numbers
+  // ---- Numbers ----
   { id: 'w018', arm: 'Մեկ', romanized: 'Mek', ipa: '/mɛk/', eng: 'One', category: 'numbers', difficulty: 1 },
   { id: 'w019', arm: 'Երկու', romanized: 'Yerku', ipa: '/jɛɾˈku/', eng: 'Two', category: 'numbers', difficulty: 1 },
-  { id: 'w020', arm: 'Երեք', romanized: 'Yerek', ipa: '/jɛˈɾɛkʰ/', eng: 'Three', category: 'numbers', difficulty: 1 },
+  { id: 'w020', arm: 'Երեք', romanized: "Yerek'", ipa: '/jɛˈɾɛkʰ/', eng: 'Three', category: 'numbers', difficulty: 1 },
   { id: 'w021', arm: 'Չորս', romanized: "Ch'ors", ipa: '/tʃʰoɾs/', eng: 'Four', category: 'numbers', difficulty: 1 },
   { id: 'w022', arm: 'Հինգ', romanized: 'Hing', ipa: '/hiŋɡ/', eng: 'Five', category: 'numbers', difficulty: 1 },
   { id: 'w023', arm: 'Վեց', romanized: 'Vets', ipa: '/vɛts/', eng: 'Six', category: 'numbers', difficulty: 1 },
+  { id: 'w040', arm: 'Յոթ', romanized: "Yot'", ipa: '/jotʰ/', eng: 'Seven', category: 'numbers', difficulty: 1 },
+  { id: 'w041', arm: 'Ութ', romanized: "Ut'", ipa: '/utʰ/', eng: 'Eight', category: 'numbers', difficulty: 1 },
+  { id: 'w042', arm: 'Ինը', romanized: 'Inə', ipa: '/iˈnə/', eng: 'Nine', category: 'numbers', difficulty: 1 },
+  { id: 'w043', arm: 'Տասը', romanized: 'Tasə', ipa: '/tɑˈsə/', eng: 'Ten', category: 'numbers', difficulty: 1 },
+  { id: 'w092', arm: 'Քսան', romanized: "K'san", ipa: '/kʰsɑn/', eng: 'Twenty', category: 'numbers', difficulty: 1 },
+  { id: 'w093', arm: 'Հարյուր', romanized: 'Haryur', ipa: '/hɑɾˈjuɾ/', eng: 'Hundred', category: 'numbers', difficulty: 1 },
+  { id: 'w094', arm: 'Հազար', romanized: 'Hazar', ipa: '/hɑˈzɑɾ/', eng: 'Thousand', category: 'numbers', difficulty: 1 },
+  { id: 'w095', arm: 'Քանի՞', romanized: "K'ani", ipa: '/kʰɑˈni/', eng: 'How many?', category: 'numbers', difficulty: 1 },
 
-  // Nature
-  { id: 'w024', arm: 'Արև', romanized: 'Arev', ipa: '/ɑˈɾɛv/', eng: 'Sun', category: 'nature', difficulty: 1 },
-  { id: 'w025', arm: 'Լուսին', romanized: 'Lusin', ipa: '/luˈsin/', eng: 'Moon', category: 'nature', difficulty: 1 },
-  { id: 'w026', arm: 'Ծով', romanized: 'Tsov', ipa: '/tsov/', eng: 'Sea', category: 'nature', difficulty: 1 },
-  { id: 'w027', arm: 'Լեռ', romanized: 'Lerr', ipa: '/lɛr/', eng: 'Mountain', category: 'nature', difficulty: 1 },
-  { id: 'w028', arm: 'Ծառ', romanized: 'Tsar', ipa: '/tsɑr/', eng: 'Tree', category: 'nature', difficulty: 1 },
-
-  // Common Verbs
+  // ---- Verbs ----
   { id: 'w029', arm: 'Ուտել', romanized: 'Utel', ipa: '/uˈtɛl/', eng: 'To eat', category: 'verbs', difficulty: 1 },
   { id: 'w030', arm: 'Խմել', romanized: 'Khmel', ipa: '/χˈmɛl/', eng: 'To drink', category: 'verbs', difficulty: 1 },
   { id: 'w031', arm: 'Գնալ', romanized: 'Gnal', ipa: '/ɡˈnɑl/', eng: 'To go', category: 'verbs', difficulty: 1 },
   { id: 'w032', arm: 'Կարդալ', romanized: 'Kardal', ipa: '/kɑɾˈdɑl/', eng: 'To read', category: 'verbs', difficulty: 1 },
   { id: 'w033', arm: 'Սիրել', romanized: 'Sirel', ipa: '/siˈɾɛl/', eng: 'To love', category: 'verbs', difficulty: 1 },
   { id: 'w034', arm: 'Խոսել', romanized: 'Khosel', ipa: '/χoˈsɛl/', eng: 'To speak', category: 'verbs', difficulty: 1 },
+  { id: 'w047', arm: 'Սովորել', romanized: 'Sovorel', ipa: '/sovoˈɾɛl/', eng: 'To learn', category: 'verbs', difficulty: 1 },
+  { id: 'w048', arm: 'Գրել', romanized: 'Grel', ipa: '/ɡˈɾɛl/', eng: 'To write', category: 'verbs', difficulty: 1 },
+  { id: 'w096', arm: 'Տեսնել', romanized: 'Tesnel', ipa: '/tɛsˈnɛl/', eng: 'To see', category: 'verbs', difficulty: 1 },
+  { id: 'w097', arm: 'Լսել', romanized: 'Lsel', ipa: '/lˈsɛl/', eng: 'To hear / listen', category: 'verbs', difficulty: 1 },
+  { id: 'w098', arm: 'Գալ', romanized: 'Gal', ipa: '/ɡɑl/', eng: 'To come', category: 'verbs', difficulty: 1 },
+  { id: 'w099', arm: 'Ապրել', romanized: 'Aprel', ipa: '/ɑpˈɾɛl/', eng: 'To live', category: 'verbs', difficulty: 1 },
+  { id: 'w100', arm: 'Աշխատել', romanized: 'Ashkhatel', ipa: '/ɑʃχɑˈtɛl/', eng: 'To work', category: 'verbs', difficulty: 1 },
+  { id: 'w101', arm: 'Ուզել', romanized: 'Uzel', ipa: '/uˈzɛl/', eng: 'To want', category: 'verbs', difficulty: 1 },
+  { id: 'w102', arm: 'Իմանալ', romanized: 'Imanal', ipa: '/imɑˈnɑl/', eng: 'To know', category: 'verbs', difficulty: 1 },
+  { id: 'w103', arm: 'Տալ', romanized: 'Tal', ipa: '/tɑl/', eng: 'To give', category: 'verbs', difficulty: 1 },
+  { id: 'w104', arm: 'Անել', romanized: 'Anel', ipa: '/ɑˈnɛl/', eng: 'To do / make', category: 'verbs', difficulty: 1 },
+  { id: 'w105', arm: 'Հասկանալ', romanized: 'Haskanal', ipa: '/hɑskɑˈnɑl/', eng: 'To understand', category: 'verbs', difficulty: 2 },
+
+  // ---- Places & transport ----
+  { id: 'w049', arm: 'Տուն', romanized: 'Tun', ipa: '/tun/', eng: 'House / Home', category: 'places', difficulty: 1 },
+  { id: 'w050', arm: 'Քաղաք', romanized: "K'aghak'", ipa: '/kʰɑʁɑkʰ/', eng: 'City', category: 'places', difficulty: 1 },
+  { id: 'w051', arm: 'Փողոց', romanized: "P'voghots", ipa: '/pʰoˈʁots/', eng: 'Street', category: 'places', difficulty: 1 },
+  { id: 'w052', arm: 'Խանութ', romanized: "Khanut'", ipa: '/χɑˈnutʰ/', eng: 'Shop', category: 'places', difficulty: 1 },
+  { id: 'w053', arm: 'Դպրոց', romanized: 'Dprots', ipa: '/dpˈɾots/', eng: 'School', category: 'places', difficulty: 1 },
+  { id: 'w054', arm: 'Ավտոբուս', romanized: 'Avtobus', ipa: '/ɑvtoˈbus/', eng: 'Bus', category: 'places', difficulty: 1 },
+  { id: 'w106', arm: 'Երևան', romanized: 'Yerevan', ipa: '/jɛɾɛˈvɑn/', eng: 'Yerevan', category: 'places', difficulty: 1 },
+  { id: 'w107', arm: 'Հայաստան', romanized: 'Hayastan', ipa: '/hɑjɑsˈtɑn/', eng: 'Armenia', category: 'places', difficulty: 1 },
+  { id: 'w108', arm: 'Ռեստորան', romanized: 'Restoran', ipa: '/rɛstoˈɾɑn/', eng: 'Restaurant', category: 'places', difficulty: 1 },
+  { id: 'w109', arm: 'Հյուրանոց', romanized: "Hyuranots'", ipa: '/hjuɾɑˈnots/', eng: 'Hotel', category: 'places', difficulty: 2 },
+  { id: 'w110', arm: 'Կայարան', romanized: 'Kayaran', ipa: '/kɑjɑˈɾɑn/', eng: 'Station', category: 'places', difficulty: 1 },
+  { id: 'w111', arm: 'Մետրո', romanized: 'Metro', ipa: '/mɛtˈɾo/', eng: 'Metro', category: 'places', difficulty: 1 },
+  { id: 'w112', arm: 'Աջ', romanized: 'Aj', ipa: '/ɑdʒ/', eng: 'Right', category: 'places', difficulty: 1 },
+  { id: 'w113', arm: 'Ձախ', romanized: 'Dzakh', ipa: '/dzɑχ/', eng: 'Left', category: 'places', difficulty: 1 },
+  { id: 'w114', arm: 'Ուղիղ', romanized: 'Ughigh', ipa: '/uˈʁiʁ/', eng: 'Straight ahead', category: 'places', difficulty: 2 },
+
+  // ---- Time ----
+  { id: 'w055', arm: 'Օր', romanized: 'Or', ipa: '/oɾ/', eng: 'Day', category: 'time', difficulty: 1 },
+  { id: 'w056', arm: 'Շաբաթ', romanized: "Shabat'", ipa: '/ʃɑbɑtʰ/', eng: 'Week / Saturday', category: 'time', difficulty: 1 },
+  { id: 'w057', arm: 'Ամիս', romanized: 'Amis', ipa: '/ɑˈmis/', eng: 'Month', category: 'time', difficulty: 1 },
+  { id: 'w058', arm: 'Տարի', romanized: 'Tari', ipa: '/tɑˈɾi/', eng: 'Year', category: 'time', difficulty: 1 },
+  { id: 'w059', arm: 'Ժամ', romanized: 'Zham', ipa: '/ʒɑm/', eng: 'Hour / Clock', category: 'time', difficulty: 1 },
+  { id: 'w060', arm: 'Այսօր', romanized: 'Aysor', ipa: '/ɑjˈsoɾ/', eng: 'Today', category: 'time', difficulty: 1 },
+  { id: 'w115', arm: 'Վաղը', romanized: 'Vaghə', ipa: '/vɑˈʁə/', eng: 'Tomorrow', category: 'time', difficulty: 1 },
+  { id: 'w116', arm: 'Երեկ', romanized: 'Yerek', ipa: '/jɛˈɾɛk/', eng: 'Yesterday', category: 'time', difficulty: 1 },
+  { id: 'w117', arm: 'Առավոտ', romanized: 'Aravot', ipa: '/ɑrɑˈvot/', eng: 'Morning', category: 'time', difficulty: 1 },
+  { id: 'w118', arm: 'Երեկո', romanized: 'Yereko', ipa: '/jɛɾɛˈko/', eng: 'Evening', category: 'time', difficulty: 1 },
+  { id: 'w119', arm: 'Գիշեր', romanized: 'Gisher', ipa: '/ɡiˈʃɛɾ/', eng: 'Night', category: 'time', difficulty: 1 },
+  { id: 'w120', arm: 'Հիմա', romanized: 'Hima', ipa: '/hiˈmɑ/', eng: 'Now', category: 'time', difficulty: 1 },
+  { id: 'w121', arm: 'Միշտ', romanized: 'Misht', ipa: '/miʃt/', eng: 'Always', category: 'time', difficulty: 1 },
+  { id: 'w122', arm: 'Երբեք', romanized: "Yerbek'", ipa: '/jɛɾˈbɛkʰ/', eng: 'Never', category: 'time', difficulty: 1 },
+
+  // ---- Adjectives & colours ----
+  { id: 'w061', arm: 'Մեծ', romanized: 'Mets', ipa: '/mɛts/', eng: 'Big', category: 'adjectives', difficulty: 1 },
+  { id: 'w062', arm: 'Փոքր', romanized: "P'vok'r", ipa: '/pʰokʰɾ/', eng: 'Small', category: 'adjectives', difficulty: 1 },
+  { id: 'w063', arm: 'Կարմիր', romanized: 'Karmir', ipa: '/kɑɾˈmiɾ/', eng: 'Red', category: 'adjectives', difficulty: 1 },
+  { id: 'w064', arm: 'Կանաչ', romanized: 'Kanach', ipa: '/kɑˈnɑtʃ/', eng: 'Green', category: 'adjectives', difficulty: 1 },
+  { id: 'w065', arm: 'Կապույտ', romanized: 'Kapuyt', ipa: '/kɑˈpujt/', eng: 'Blue', category: 'adjectives', difficulty: 1 },
+  { id: 'w066', arm: 'Գեղեցիկ', romanized: 'Geghetsik', ipa: '/ɡɛʁɛˈtsik/', eng: 'Beautiful', category: 'adjectives', difficulty: 1 },
+  { id: 'w123', arm: 'Վատ', romanized: 'Vat', ipa: '/vɑt/', eng: 'Bad', category: 'adjectives', difficulty: 1 },
+  { id: 'w124', arm: 'Նոր', romanized: 'Nor', ipa: '/noɾ/', eng: 'New', category: 'adjectives', difficulty: 1 },
+  { id: 'w125', arm: 'Հին', romanized: 'Hin', ipa: '/hin/', eng: 'Old', category: 'adjectives', difficulty: 1 },
+  { id: 'w126', arm: 'Սառը', romanized: 'Sarrə', ipa: '/sɑˈrə/', eng: 'Cold', category: 'adjectives', difficulty: 1 },
+  { id: 'w127', arm: 'Տաք', romanized: "Tak'", ipa: '/tɑkʰ/', eng: 'Hot / Warm', category: 'adjectives', difficulty: 1 },
+  { id: 'w128', arm: 'Սև', romanized: 'Sev', ipa: '/sɛv/', eng: 'Black', category: 'adjectives', difficulty: 1 },
+  { id: 'w129', arm: 'Սպիտակ', romanized: 'Spitak', ipa: '/spiˈtɑk/', eng: 'White', category: 'adjectives', difficulty: 1 },
+  { id: 'w130', arm: 'Դժվար', romanized: 'Dzhvar', ipa: '/dʒˈvɑɾ/', eng: 'Difficult', category: 'adjectives', difficulty: 1 },
+  { id: 'w131', arm: 'Հեշտ', romanized: 'Hesht', ipa: '/hɛʃt/', eng: 'Easy', category: 'adjectives', difficulty: 1 },
+  { id: 'w132', arm: 'Ուրախ', romanized: 'Urakh', ipa: '/uˈɾɑχ/', eng: 'Happy', category: 'adjectives', difficulty: 1 },
+
+  // ---- Question words ----
+  { id: 'w067', arm: 'Ի՞նչ', romanized: 'Inch', ipa: '/intʃ/', eng: 'What?', category: 'questions', difficulty: 1 },
+  { id: 'w068', arm: 'Ո՞վ', romanized: 'Ov', ipa: '/ov/', eng: 'Who?', category: 'questions', difficulty: 1 },
+  { id: 'w069', arm: 'Ո՞ւր', romanized: 'Ur', ipa: '/uɾ/', eng: 'Where (to)?', category: 'questions', difficulty: 1 },
+  { id: 'w070', arm: 'Ե՞րբ', romanized: 'Yerb', ipa: '/jɛɾb/', eng: 'When?', category: 'questions', difficulty: 1 },
+  { id: 'w071', arm: 'Ինչու՞', romanized: 'Inchu', ipa: '/intʃˈu/', eng: 'Why?', category: 'questions', difficulty: 1 },
+  { id: 'w133', arm: 'Ինչպե՞ս', romanized: 'Inchpes', ipa: '/intʃˈpɛs/', eng: 'How?', category: 'questions', difficulty: 1 },
+  { id: 'w134', arm: 'Որտե՞ղ', romanized: "Vortegh", ipa: '/voɾˈtɛʁ/', eng: 'Where (at)?', category: 'questions', difficulty: 1 },
+  { id: 'w135', arm: 'Ո՞ր', romanized: 'Vor', ipa: '/voɾ/', eng: 'Which?', category: 'questions', difficulty: 1 },
+
+  // ---- Nature ----
+  { id: 'w024', arm: 'Արև', romanized: 'Arev', ipa: '/ɑˈɾɛv/', eng: 'Sun', category: 'nature', difficulty: 1 },
+  { id: 'w025', arm: 'Լուսին', romanized: 'Lusin', ipa: '/luˈsin/', eng: 'Moon', category: 'nature', difficulty: 1 },
+  { id: 'w026', arm: 'Ծով', romanized: 'Tsov', ipa: '/tsov/', eng: 'Sea', category: 'nature', difficulty: 1 },
+  { id: 'w027', arm: 'Լեռ', romanized: 'Lerr', ipa: '/lɛr/', eng: 'Mountain', category: 'nature', difficulty: 1 },
+  { id: 'w028', arm: 'Ծառ', romanized: 'Tsar', ipa: '/tsɑr/', eng: 'Tree', category: 'nature', difficulty: 1 },
+  { id: 'w037', arm: 'Ձյուն', romanized: 'Dzyun', ipa: '/dzjun/', eng: 'Snow', category: 'nature', difficulty: 1 },
+  { id: 'w136', arm: 'Անձրև', romanized: 'Andzrev', ipa: '/ɑndzˈɾɛv/', eng: 'Rain', category: 'nature', difficulty: 1 },
+  { id: 'w137', arm: 'Քամի', romanized: "K'ami", ipa: '/kʰɑˈmi/', eng: 'Wind', category: 'nature', difficulty: 1 },
+  { id: 'w138', arm: 'Ծաղիկ', romanized: 'Tsaghik', ipa: '/tsɑˈʁik/', eng: 'Flower', category: 'nature', difficulty: 1 },
+  { id: 'w139', arm: 'Գետ', romanized: 'Get', ipa: '/ɡɛt/', eng: 'River', category: 'nature', difficulty: 1 },
+  { id: 'w140', arm: 'Երկինք', romanized: "Yerkink'", ipa: '/jɛɾˈkinkʰ/', eng: 'Sky', category: 'nature', difficulty: 1 },
+  { id: 'w141', arm: 'Աստղ', romanized: 'Astgh', ipa: '/ɑstʁ/', eng: 'Star', category: 'nature', difficulty: 1 },
+
+  // ---- Animals ----
+  { id: 'w142', arm: 'Շուն', romanized: 'Shun', ipa: '/ʃun/', eng: 'Dog', category: 'animals', difficulty: 1 },
+  { id: 'w143', arm: 'Կատու', romanized: 'Katu', ipa: '/kɑˈtu/', eng: 'Cat', category: 'animals', difficulty: 1 },
+  { id: 'w144', arm: 'Ձի', romanized: 'Dzi', ipa: '/dzi/', eng: 'Horse', category: 'animals', difficulty: 1 },
+  { id: 'w145', arm: 'Թռչուն', romanized: "T'rrch'un", ipa: '/tʰrˈtʃʰun/', eng: 'Bird', category: 'animals', difficulty: 1 },
+  { id: 'w146', arm: 'Կով', romanized: 'Kov', ipa: '/kov/', eng: 'Cow', category: 'animals', difficulty: 1 },
+  { id: 'w147', arm: 'Ոչխար', romanized: 'Vochkhar', ipa: '/votʃˈχɑɾ/', eng: 'Sheep', category: 'animals', difficulty: 1 },
+
+  // ---- Home & objects ----
+  { id: 'w148', arm: 'Գիրք', romanized: "Girk'", ipa: '/ɡiɾkʰ/', eng: 'Book', category: 'home', difficulty: 1 },
+  { id: 'w149', arm: 'Դուռ', romanized: 'Durr', ipa: '/duɾ/', eng: 'Door', category: 'home', difficulty: 1 },
+  { id: 'w150', arm: 'Պատուհան', romanized: 'Patuhan', ipa: '/pɑtuˈhɑn/', eng: 'Window', category: 'home', difficulty: 1 },
+  { id: 'w151', arm: 'Սեղան', romanized: 'Seghan', ipa: '/sɛˈʁɑn/', eng: 'Table', category: 'home', difficulty: 1 },
+  { id: 'w152', arm: 'Աթոռ', romanized: "At'orr", ipa: '/ɑˈtʰor/', eng: 'Chair', category: 'home', difficulty: 1 },
+  { id: 'w153', arm: 'Մահճակալ', romanized: 'Mahchakal', ipa: '/mɑhtʃɑˈkɑl/', eng: 'Bed', category: 'home', difficulty: 2 },
+  { id: 'w154', arm: 'Հեռախոս', romanized: 'Herrakhos', ipa: '/hɛrɑˈχos/', eng: 'Telephone', category: 'home', difficulty: 1 },
+  { id: 'w155', arm: 'Բանալի', romanized: 'Banali', ipa: '/bɑnɑˈli/', eng: 'Key', category: 'home', difficulty: 1 },
+  { id: 'w156', arm: 'Փող', romanized: "P'vogh", ipa: '/pʰoʁ/', eng: 'Money', category: 'home', difficulty: 1 },
+  { id: 'w157', arm: 'Թուղթ', romanized: "T'ught'", ipa: '/tʰuʁtʰ/', eng: 'Paper', category: 'home', difficulty: 1 },
+
+  // ---- Body ----
+  { id: 'w158', arm: 'Գլուխ', romanized: 'Glukh', ipa: '/ɡluχ/', eng: 'Head', category: 'body', difficulty: 1 },
+  { id: 'w159', arm: 'Աչք', romanized: "Ach'k'", ipa: '/ɑtʃʰkʰ/', eng: 'Eye', category: 'body', difficulty: 1 },
+  { id: 'w160', arm: 'Ձեռք', romanized: "Dzerrk'", ipa: '/dzɛrkʰ/', eng: 'Hand / Arm', category: 'body', difficulty: 1 },
+  { id: 'w161', arm: 'Ոտք', romanized: "Votk'", ipa: '/votkʰ/', eng: 'Foot / Leg', category: 'body', difficulty: 1 },
+  { id: 'w162', arm: 'Սիրտ', romanized: 'Sirt', ipa: '/siɾt/', eng: 'Heart', category: 'body', difficulty: 1 },
+  { id: 'w163', arm: 'Բերան', romanized: 'Beran', ipa: '/bɛˈɾɑn/', eng: 'Mouth', category: 'body', difficulty: 1 },
+  { id: 'w164', arm: 'Ականջ', romanized: 'Akanj', ipa: '/ɑkɑndʒ/', eng: 'Ear', category: 'body', difficulty: 1 },
+
+  // ---- Pronouns & function words ----
+  { id: 'w165', arm: 'Ես', romanized: 'Yes', ipa: '/jɛs/', eng: 'I', category: 'pronouns', difficulty: 1 },
+  { id: 'w166', arm: 'Դու', romanized: 'Du', ipa: '/du/', eng: 'You (informal)', category: 'pronouns', difficulty: 1 },
+  { id: 'w167', arm: 'Նա', romanized: 'Na', ipa: '/nɑ/', eng: 'He / She', category: 'pronouns', difficulty: 1 },
+  { id: 'w168', arm: 'Մենք', romanized: "Menk'", ipa: '/mɛnkʰ/', eng: 'We', category: 'pronouns', difficulty: 1 },
+  { id: 'w169', arm: 'Դուք', romanized: "Duk'", ipa: '/dukʰ/', eng: 'You (plural/formal)', category: 'pronouns', difficulty: 1 },
+  { id: 'w170', arm: 'Նրանք', romanized: "Nrank'", ipa: '/nɾɑnkʰ/', eng: 'They', category: 'pronouns', difficulty: 1 },
+  { id: 'w171', arm: 'Այս', romanized: 'Ays', ipa: '/ɑjs/', eng: 'This', category: 'pronouns', difficulty: 1 },
+  { id: 'w172', arm: 'Այն', romanized: 'Ayn', ipa: '/ɑjn/', eng: 'That', category: 'pronouns', difficulty: 1 },
+  { id: 'w173', arm: 'Շատ', romanized: 'Shat', ipa: '/ʃɑt/', eng: 'Very / Many', category: 'pronouns', difficulty: 1 },
+  { id: 'w174', arm: 'Քիչ', romanized: "K'ich'", ipa: '/kʰitʃʰ/', eng: 'Few / A little', category: 'pronouns', difficulty: 1 },
+  { id: 'w175', arm: 'Եւ', romanized: 'Yev', ipa: '/jɛv/', eng: 'And', category: 'pronouns', difficulty: 1 },
+  { id: 'w176', arm: 'Բայց', romanized: "Bayts'", ipa: '/bɑjts/', eng: 'But', category: 'pronouns', difficulty: 1 },
+  { id: 'w177', arm: 'Հետ', romanized: 'Het', ipa: '/hɛt/', eng: 'With', category: 'pronouns', difficulty: 1 },
+  { id: 'w178', arm: 'Նաեւ', romanized: 'Nayev', ipa: '/nɑˈjɛv/', eng: 'Also', category: 'pronouns', difficulty: 1 },
 ];
 
 const vocabCategories = [
-  { id: 'greetings', label: 'Greetings' },
-  { id: 'family',    label: 'Family' },
-  { id: 'food',      label: 'Food & Drink' },
-  { id: 'numbers',   label: 'Numbers' },
-  { id: 'nature',    label: 'Nature' },
-  { id: 'verbs',     label: 'Verbs' },
+  { id: 'greetings',  label: 'Greetings' },
+  { id: 'family',     label: 'Family' },
+  { id: 'food',       label: 'Food & Drink' },
+  { id: 'numbers',    label: 'Numbers' },
+  { id: 'verbs',      label: 'Verbs' },
+  { id: 'places',     label: 'Places' },
+  { id: 'time',       label: 'Time' },
+  { id: 'adjectives', label: 'Describing' },
+  { id: 'questions',  label: 'Questions' },
+  { id: 'nature',     label: 'Nature' },
+  { id: 'animals',    label: 'Animals' },
+  { id: 'home',       label: 'Home' },
+  { id: 'body',       label: 'Body' },
+  { id: 'pronouns',   label: 'Pronouns' },
 ];
+
+function getWord(id) {
+  return vocabulary.find(w => w.id === id) || null;
+}
