@@ -27,19 +27,19 @@ function showLetterDetail(idx, cardEl) {
   const detail = document.getElementById('letterDetail');
   detail.className = 'letter-detail visible';
   detail.innerHTML = `
-    <div style="text-align:center;">
+    <div class="detail-glyph">
       <div class="detail-char">${l.arm}</div>
-      <div style="font-size:2rem;color:var(--text-muted);margin-top:0.25rem;">${l.lower}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--gold);margin-top:0.5rem;">${l.ipa}</div>
-      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">${l.name}</div>
-      <div style="margin-top:0.75rem;">${speakButton(l.lower, 'Hear ' + l.name)}</div>
+      <div class="detail-lower">${l.lower}</div>
+      <div class="detail-ipa">${l.ipa}</div>
+      <div class="detail-name">${l.name}</div>
+      <div class="detail-speak">${speakButton(l.lower, 'Hear ' + l.name)}</div>
       <button class="mark-btn" onclick="toggleLearned(${idx})">${learnedLetters.has(idx) ? '✓ Learned' : 'Mark as Learned'}</button>
     </div>
     <div class="detail-info">
       <h3>${l.name} — "${l.sound}"</h3>
       <p>${l.desc}</p>
-      <div style="margin-top:1rem;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);">Pronunciation</div>
-      <p style="margin-top:0.4rem;font-size:0.85rem;color:var(--text-muted);">IPA: <span style="color:var(--text);font-family:'DM Mono',monospace;">${l.ipa}</span></p>
+      <h4 class="detail-subhead">Pronunciation</h4>
+      <p class="detail-ipa-line">IPA <span>${l.ipa}</span></p>
     </div>
     <div class="detail-words">
       <h4>Example Words</h4>

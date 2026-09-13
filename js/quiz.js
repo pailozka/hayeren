@@ -150,8 +150,7 @@ function showLetterResult() {
   const total = quizLetters.length;
   document.getElementById('quizCard').innerHTML = `
     <div class="quiz-prompt">Quiz Complete!</div>
-    <div class="quiz-char" style="font-size:3rem;">${quizScore >= 12 ? '🎉' : quizScore >= 8 ? '👍' : '📚'}</div>
-    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold);margin:0.5rem 0;">${quizScore} / ${total}</div>
+    <div class="quiz-result-score">${quizScore} <span>/ ${total}</span></div>
     <div class="quiz-subtext">${quizScore >= 12 ? 'Excellent! You know these letters well.' : quizScore >= 8 ? 'Good progress! Keep reviewing.' : 'Keep studying — it takes time!'}</div>
   `;
   document.getElementById('quizOptions').innerHTML = '';
@@ -253,8 +252,7 @@ function showWordResult() {
   const total = wordQuizItems.length;
   document.getElementById('quizCard').innerHTML = `
     <div class="quiz-prompt">Word Quiz Complete!</div>
-    <div class="quiz-char" style="font-size:3rem;">${wordQuizScore >= total * 0.8 ? '🎉' : wordQuizScore >= total * 0.5 ? '👍' : '📚'}</div>
-    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold);margin:0.5rem 0;">${wordQuizScore} / ${total}</div>
+    <div class="quiz-result-score">${wordQuizScore} <span>/ ${total}</span></div>
     <div class="quiz-subtext">${wordQuizScore >= total * 0.8 ? 'Excellent vocabulary!' : wordQuizScore >= total * 0.5 ? 'Good progress! Keep at it.' : 'Keep studying — words take time!'}</div>
   `;
   document.getElementById('quizOptions').innerHTML = '';

@@ -36,7 +36,7 @@ function renderReviewCard() {
   if (!reviewQueue.length) {
     host.innerHTML = `
       <div class="rv-empty">
-        <div class="rv-empty-mark">Ա</div>
+        <div class="rv-emblem"></div>
         <h3>Nothing due right now</h3>
         <p>Your review queue is clear. Items enter it once you have studied them in a Daily session, a Quiz, or Flashcards — then return as the schedule brings them back.</p>
       </div>`;

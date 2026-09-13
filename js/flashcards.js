@@ -95,7 +95,7 @@ function renderFlashcard() {
       <div class="fc-label">Armenian Letter</div>
       <div class="fc-arm-char">${item.arm}</div>
       <div class="fc-romanized">${item.lower} · ${item.name}</div>
-      <div style="margin-top:0.6rem;">${speakButton(item.lower, 'Hear ' + item.name)}</div>
+      <div class="fc-speak">${speakButton(item.lower, 'Hear ' + item.name)}</div>
     `;
     backEl.innerHTML = `
       <div class="fc-label">Sound &amp; Details</div>
@@ -106,15 +106,15 @@ function renderFlashcard() {
   } else {
     frontEl.innerHTML = `
       <div class="fc-label">Armenian</div>
-      <div class="fc-arm-char" style="font-size:3rem;">${item.arm}</div>
+      <div class="fc-arm-char word">${item.arm}</div>
       <div class="fc-romanized">${item.romanized}</div>
-      <div style="margin-top:0.6rem;">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
+      <div class="fc-speak">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
     `;
     backEl.innerHTML = `
       <div class="fc-label">English</div>
       <div class="fc-translation">${item.eng}</div>
       <div class="fc-ipa">${item.ipa}</div>
-      <div style="margin-top:0.6rem;">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
+      <div class="fc-speak">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
     `;
   }
 }
@@ -168,10 +168,10 @@ function showFlashcardComplete() {
   const container = document.querySelector('.flashcard-container');
   if (!container) return;
   container.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--gold-dim);border-radius:16px;height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+    <div class="fc-complete">
       <div class="fc-label">Deck Complete</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text);margin:0.75rem 0;">All cards reviewed</div>
-      <button class="mark-btn" style="margin-top:1rem;" onclick="restartFlashcards()">Shuffle &amp; Repeat</button>
+      <div class="fc-complete-title">All cards reviewed</div>
+      <button class="mark-btn" onclick="restartFlashcards()">Shuffle &amp; Repeat</button>
     </div>
   `;
   const rating = document.getElementById('fcRating');

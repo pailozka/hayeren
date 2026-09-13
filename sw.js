@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hayeren-v2';
+const CACHE_NAME = 'hayeren-v3';
 const APP_SHELL = [
   './',
   'index.html',
@@ -24,6 +24,10 @@ const APP_SHELL = [
   'js/data/curriculum.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
+  'images/carpet-bg.jpg',
+  'images/carpet-band.jpg',
+  'images/tatik-papik.png',
+  'images/chess-print.png',
 ];
 
 self.addEventListener('install', event => {

@@ -94,7 +94,7 @@ function saveLearnedLetters(set) {
 
 function updateLearnedCountDisplay(size) {
   const el = document.getElementById('learnedCount');
-  if (el) el.innerHTML = size + ' <span style="font-size:0.8rem;color:var(--text-muted);font-family:\'DM Sans\',sans-serif;">/ 38</span>';
+  if (el) el.innerHTML = size + ' <span>/ ' + letters.length + '</span>';
 }
 
 // ---- Tasks Done ----
