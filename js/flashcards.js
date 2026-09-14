@@ -95,11 +95,10 @@ function renderFlashcard() {
       <div class="fc-label">Armenian Letter</div>
       <div class="fc-arm-char">${item.arm}</div>
       <div class="fc-romanized">${item.lower} · ${item.name}</div>
-      <div class="fc-speak">${speakButton(item.lower, 'Hear ' + item.name)}</div>
     `;
     backEl.innerHTML = `
       <div class="fc-label">Sound &amp; Details</div>
-      <div class="fc-translation">"${item.sound}" ${speakButton(item.lower, 'Hear ' + item.name)}</div>
+      <div class="fc-translation">"${item.sound}"</div>
       <div class="fc-ipa">${item.ipa}</div>
       <div class="fc-desc">${item.desc}</div>
     `;
@@ -108,13 +107,11 @@ function renderFlashcard() {
       <div class="fc-label">Armenian</div>
       <div class="fc-arm-char word">${item.arm}</div>
       <div class="fc-romanized">${item.romanized}</div>
-      <div class="fc-speak">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
     `;
     backEl.innerHTML = `
       <div class="fc-label">English</div>
       <div class="fc-translation">${item.eng}</div>
       <div class="fc-ipa">${item.ipa}</div>
-      <div class="fc-speak">${speakButton(item.arm, 'Hear ' + item.eng)}</div>
     `;
   }
 }

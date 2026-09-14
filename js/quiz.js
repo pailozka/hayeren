@@ -150,6 +150,7 @@ function showLetterResult() {
   const total = quizLetters.length;
   document.getElementById('quizCard').innerHTML = `
     <div class="quiz-prompt">Quiz Complete!</div>
+    <img class="quiz-result-mark" src="images/pomegranate-cutout.png" alt="">
     <div class="quiz-result-score">${quizScore} <span>/ ${total}</span></div>
     <div class="quiz-subtext">${quizScore >= 12 ? 'Excellent! You know these letters well.' : quizScore >= 8 ? 'Good progress! Keep reviewing.' : 'Keep studying — it takes time!'}</div>
   `;
@@ -252,6 +253,7 @@ function showWordResult() {
   const total = wordQuizItems.length;
   document.getElementById('quizCard').innerHTML = `
     <div class="quiz-prompt">Word Quiz Complete!</div>
+    <img class="quiz-result-mark" src="images/pomegranate-cutout.png" alt="">
     <div class="quiz-result-score">${wordQuizScore} <span>/ ${total}</span></div>
     <div class="quiz-subtext">${wordQuizScore >= total * 0.8 ? 'Excellent vocabulary!' : wordQuizScore >= total * 0.5 ? 'Good progress! Keep at it.' : 'Keep studying — words take time!'}</div>
   `;

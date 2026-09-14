@@ -105,15 +105,17 @@ function renderDaySessions(day) {
         </div>
       </div>
       <div class="session-body${i === 0 ? ' open' : ''}">
-        ${renderSessionContent(session)}
-        <button class="complete-btn" ${done ? 'disabled' : ''}>
-          ${done ? '✓ Completed' : 'Mark Session Complete'}
-        </button>
+        <div class="session-body-inner">
+          ${renderSessionContent(session)}
+          <button class="complete-btn" ${done ? 'disabled' : ''}>
+            ${done ? '✓ Completed' : 'Mark Session Complete'}
+          </button>
+        </div>
       </div>
     `;
 
     block.querySelector('.session-header').onclick = () => {
-      block.querySelector('.session-body').classList.toggle('open');
+      toggleSessionBody(block.querySelector('.session-body'));
       block.querySelector('.session-chevron').classList.toggle('open');
     };
 
@@ -121,7 +123,42 @@ function renderDaySessions(day) {
     if (!done) btn.onclick = () => completeSession(day.day, key, btn);
 
     host.appendChild(block);
+
+    // The panel open by default on load needs no animation, so release its
+    // max-height straight to 'none' rather than a measured pixel value that
+    // would clip any later in-panel expansion (a revealed recall answer, etc).
+    const body = block.querySelector('.session-body');
+    if (body.classList.contains('open')) body.style.maxHeight = 'none';
   });
+}
+
+// Animates to the panel's real measured height instead of an arbitrary large
+// max-height — that hack makes ease-timed open/close look like a snap
+// followed by a long invisible tail, since most of the eased curve plays out
+// far past the content's actual height.
+//
+// Once fully open, max-height is released to 'none' so content that expands
+// later — a revealed recall answer, a reading-line translation — isn't
+// clipped by a height measured before that expansion happened.
+function toggleSessionBody(body) {
+  const opening = !body.classList.contains('open');
+  if (opening) {
+    body.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.addEventListener('transitionend', function release(e) {
+      if (e.propertyName !== 'max-height') return;
+      body.removeEventListener('transitionend', release);
+      if (body.classList.contains('open')) body.style.maxHeight = 'none';
+    });
+  } else {
+    // 'none' can't be animated from directly — pin to the current rendered
+    // height first, then collapse from that fixed value on the next frame.
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      body.style.maxHeight = '0px';
+      body.classList.remove('open');
+    });
+  }
 }
 
 function completeSession(dayNum, key, btn) {
@@ -176,7 +213,6 @@ function renderLettersSession(s) {
         <div class="study-letter-words">
           ${l.words.map(w => `<span>${w.arm} <em>${w.eng}</em></span>`).join('')}
         </div>
-        ${speakButton(l.lower, 'Hear ' + l.name)}
       </div>`;
   }).join('') + `</div>`;
 }
@@ -190,7 +226,6 @@ function renderTraceSession(s) {
           <div class="trace-glyph">${letters[i].arm}</div>
           <div class="trace-glyph lower">${letters[i].lower}</div>
           <div class="trace-name">${letters[i].name}</div>
-          ${speakButton(letters[i].lower, 'Hear ' + letters[i].name)}
         </div>`).join('')}
     </div>`;
 }
@@ -220,7 +255,6 @@ function renderWordsSession(s) {
             <div class="wp-arm">${w.arm}</div>
             <div class="wp-rom">${w.romanized}</div>
             <div class="wp-eng">${w.eng}</div>
-            ${speakButton(w.arm, 'Hear ' + w.eng)}
           </div>`;
       }).join('')}
     </div>`;
@@ -233,7 +267,7 @@ function renderPhrasesSession(s) {
     <div class="phrase-practice">
       ${list.map(p => `
         <div class="phrase-practice-item">
-          <div class="pp-arm">${p.arm} ${speakButton(p.arm, 'Hear phrase')}</div>
+          <div class="pp-arm">${p.arm}</div>
           <div class="pp-rom">${p.romanized}</div>
           <div class="pp-eng">${p.eng}</div>
           ${p.usage ? `<div class="pp-usage">${p.usage}</div>` : ''}
@@ -257,7 +291,7 @@ function renderGrammarSession(s) {
       <div class="grammar-examples">
         ${g.examples.map(e => `
           <div class="grammar-example">
-            <div class="ge-arm">${e.arm} ${speakButton(e.arm, 'Hear example')}</div>
+            <div class="ge-arm">${e.arm}</div>
             <div class="ge-rom">${e.rom}</div>
             <div class="ge-eng">${e.eng}</div>
           </div>`).join('')}
@@ -272,7 +306,7 @@ function renderReadingSession(s) {
     <div class="reading-lines">
       ${s.lines.map(l => `
         <div class="reading-line" onclick="this.classList.toggle('revealed')">
-          <div class="rl-arm">${l.arm} ${speakButton(l.arm, 'Hear sentence')}</div>
+          <div class="rl-arm">${l.arm}</div>
           <div class="rl-rom">${l.rom}</div>
           <div class="rl-eng">${l.eng}</div>
         </div>`).join('')}

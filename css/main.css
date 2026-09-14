@@ -61,7 +61,13 @@
   --sawtooth: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8' viewBox='0 0 16 8'%3E%3Cpath d='M0 8L8 0l8 8z' fill='%23a72520' opacity='.85'/%3E%3C/svg%3E");
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Keeps an in-page jump (recall/reading reveals, a focused input) clear
+     of the sticky nav instead of landing underneath it. */
+  scroll-padding-top: 84px;
+}
 
 body {
   background: var(--bg);
@@ -73,17 +79,18 @@ body {
   overflow-x: hidden;
 }
 
-/* The carpet itself, held far back — it reads as woven texture in the paper,
-   not as a picture. Tiled so it costs one small file at any viewport. */
+/* A flat, seamless textile pattern held far back as woven texture, not a
+   picture — a genuine repeat unit tiles far more cleanly than a cropped
+   photograph would, and costs one small file at any viewport. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.09;
-  background-image: url('../images/carpet-bg.jpg');
-  background-size: 380px auto;
+  opacity: 0.07;
+  background-image: url('../images/pattern-tile.jpg');
+  background-size: 160px auto;
   background-repeat: repeat;
   mix-blend-mode: multiply;
 }
@@ -161,6 +168,22 @@ nav::after {
   display: flex;
   flex-wrap: wrap;
   gap: 0.15rem 0.4rem;
+}
+
+/* Below the wrap breakpoint, nine tabs wrapping to a third line pushes page
+   content down unpredictably. A single scrollable row reads as one control
+   (swipe to see more) instead of a layout that shifts per page. */
+@media (max-width: 720px) {
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn { flex: 0 0 auto; }
 }
 
 .tab-btn {
@@ -540,6 +563,8 @@ h1, h2, h3, h4 {
 .heatmap-wrap {
   overflow-x: auto;
   padding-bottom: 0.4rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .heatmap {
@@ -711,6 +736,19 @@ h1, h2, h3, h4 {
 .fc-rate-easy:hover { border-color: var(--leaf); color: var(--leaf); }
 
 /* ======= PROGRAM ======= */
+/* Woven band lifted from the same textile as the background tile — ties the
+   Program page to the dashboard's carpet band without repeating the asset. */
+.pattern-band {
+  height: 54px;
+  margin-bottom: 1.75rem;
+  border-top: 2px solid var(--apricot-deep);
+  border-bottom: 2px solid var(--apricot-deep);
+  background-image: url('../images/pattern-band.jpg');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
 .program-head { margin-bottom: 1.5rem; }
 .program-head h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
 
@@ -811,16 +849,17 @@ h1, h2, h3, h4 {
 
 .session-chevron.open { transform: rotate(180deg); }
 
+/* max-height is set inline by toggleSessionBody() to the panel's real
+   scrollHeight, not a large fixed value — an ease timing curve run against
+   an arbitrary max makes the open/close look like a snap with a long
+   invisible tail instead of an actual smooth expand/collapse. */
 .session-body {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease;
+  transition: max-height 0.32s ease;
 }
 
-.session-body.open {
-  max-height: 6000px;
-  padding: 0 1.3rem 1.4rem;
-}
+.session-body-inner { padding: 0 1.3rem 1.4rem; }
 
 .session-intro {
   font-size: 0.94rem;
@@ -996,7 +1035,11 @@ h1, h2, h3, h4 {
 
 .grammar-body { font-size: 0.94rem; color: var(--ink-mid); max-width: 64ch; }
 
-.table-scroll { overflow-x: auto; }
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
 
 .grammar-table {
   width: 100%;
@@ -1160,9 +1203,42 @@ h1, h2, h3, h4 {
 .cal-year h3 { font-size: 1.15rem; margin-bottom: 0.8rem; }
 
 /* ======= ALPHABET ======= */
-.alpha-header { margin-bottom: 1.75rem; }
+/* Border strip from a Caucasian runner — a real weave rather than a repeat
+   unit, since it only has to run once at the top of this page. */
+.rug-band {
+  height: 60px;
+  margin-bottom: 1.75rem;
+  border-top: 2px solid var(--apricot-deep);
+  border-bottom: 2px solid var(--apricot-deep);
+  background-image: url('../images/rug-band.jpg');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+.alpha-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
 .alpha-header h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
 .alpha-header p { margin-top: 0.4rem; color: var(--ink-mid); font-style: italic; }
+
+/* An illuminated manuscript initial — the historical ancestor of "decorating
+   a letter," used here instead of an icon. */
+.alpha-initial {
+  width: clamp(70px, 12vw, 110px);
+  height: auto;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+@media (max-width: 560px) {
+  .alpha-initial { display: none; }
+}
 
 .letter-grid {
   display: grid;
@@ -1243,7 +1319,6 @@ h1, h2, h3, h4 {
 
 .detail-ipa { font-family: var(--mono); font-size: 0.8rem; color: var(--apricot); margin-top: 0.4rem; }
 .detail-name { font-size: 0.8rem; font-style: italic; color: var(--ink-mid); }
-.detail-speak { margin-top: 0.7rem; }
 
 .detail-info h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
 .detail-info p { font-size: 0.93rem; color: var(--ink-mid); }
@@ -1363,6 +1438,15 @@ h1, h2, h3, h4 {
 
 .quiz-result-score span { font-size: 1.4rem; color: var(--ink-mid); }
 
+/* Pomegranate — a traditional Armenian symbol of abundance, standing in for
+   the generic celebration emoji on a completed quiz. */
+.quiz-result-mark {
+  width: 64px;
+  height: auto;
+  margin: 0.3rem auto 0;
+  display: block;
+}
+
 .quiz-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; }
 
 .quiz-opt {
@@ -1387,6 +1471,21 @@ h1, h2, h3, h4 {
 
 /* ======= FLASHCARDS ======= */
 .flashcard-top { margin-bottom: 1.25rem; }
+
+.flashcard-top-title {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+/* A linocut dancer, standing in for a generic icon on the deck header. */
+.flashcard-emblem {
+  width: 46px;
+  height: auto;
+  margin-bottom: -0.2rem;
+  opacity: 0.85;
+}
 
 .fc-progress {
   display: flex;
@@ -1446,7 +1545,6 @@ h1, h2, h3, h4 {
 }
 
 .fc-arm-char.word { font-size: clamp(2.4rem, 8vw, 3rem); }
-.fc-speak { margin-top: 0.6rem; }
 .fc-romanized { font-family: var(--mono); font-size: 0.85rem; color: var(--ink-mid); }
 
 .fc-complete {
@@ -1488,9 +1586,28 @@ h1, h2, h3, h4 {
 .fc-next-due.visible { opacity: 1; }
 
 /* ======= PHRASEBOOK ======= */
-.phrases-header { margin-bottom: 1.5rem; }
+.phrases-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
 .phrases-header h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
 .phrases-header p { margin-top: 0.45rem; color: var(--ink-mid); max-width: 58ch; }
+
+.phrases-emblem {
+  width: clamp(64px, 10vw, 96px);
+  height: auto;
+  flex-shrink: 0;
+  border-radius: 2px;
+  filter: sepia(0.3) saturate(1.1);
+}
+
+@media (max-width: 560px) {
+  .phrases-emblem { display: none; }
+}
 
 .phrase-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 0.8rem; }
 
@@ -1630,6 +1747,12 @@ h1, h2, h3, h4 {
   filter: sepia(1) saturate(4) hue-rotate(-18deg) brightness(0.5);
 }
 
+/* A photographic weave carries its own colour and its own woven border —
+   the ink filter and sawtooth frame are for the linocut only. */
+.culture-art.photo { padding: 0; border: 1px solid var(--border-firm); }
+.culture-art.photo::before, .culture-art.photo::after { display: none; }
+.culture-art.photo img { filter: none; }
+
 .culture-text h3 {
   font-size: 1.3rem;
   margin-bottom: 0.4rem;
@@ -1651,25 +1774,6 @@ h1, h2, h3, h4 {
   .culture-card { grid-template-columns: 1fr; }
   .culture-art { max-width: 230px; }
 }
-
-/* ======= PRONUNCIATION BUTTON ======= */
-.speak-btn {
-  background: transparent;
-  border: 1px solid var(--border-firm);
-  color: var(--apricot-deep);
-  font-size: 0.78rem;
-  line-height: 1;
-  width: 1.85rem;
-  height: 1.85rem;
-  border-radius: 50%;
-  cursor: pointer;
-  padding: 0;
-  vertical-align: middle;
-  transition: background 0.18s, border-color 0.18s, transform 0.1s;
-}
-
-.speak-btn:hover { background: var(--apricot-pale); border-color: var(--apricot); }
-.speak-btn:active { transform: scale(0.92); }
 
 /* ======= WEEK DOTS (legacy, kept for the streak strip) ======= */
 .week-dots { display: flex; gap: 0.3rem; }
@@ -1693,13 +1797,14 @@ h1, h2, h3, h4 {
   .nav-logo { font-size: 1.35rem; }
   .tab-btn { font-size: 0.86rem; padding: 0.25rem 0.4rem 0.35rem; }
   .session-header { padding: 0.95rem 1rem; }
-  .session-body.open { padding: 0 1rem 1.2rem; }
+  .session-body-inner { padding: 0 1rem 1.2rem; }
   .flashcard { height: 290px; }
   .review-card { padding: 2rem 1.2rem; }
   .hm-cell { width: 9px; height: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;

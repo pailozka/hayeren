@@ -75,7 +75,6 @@ function renderReviewCard() {
     <div class="rv-type">${typeLabel}${record.lapses ? ` · struggled ${record.lapses}×` : ''}</div>
     <div class="rv-front">${front}</div>
     <div class="rv-sub">${sub}</div>
-    ${speakButton(type === 'letter' ? item.lower : item.arm, 'Hear it')}
     <div class="rv-back" id="rvBack">${back}</div>
     <button class="mark-btn" id="rvRevealBtn" onclick="revealReview()">Reveal</button>
   `;

@@ -88,6 +88,7 @@
 
 <!-- ====== PROGRAM (DAILY) PANEL ====== -->
 <div id="panel-daily" class="panel">
+  <div class="pattern-band" role="presentation"></div>
   <div class="schedule-section">
     <div class="program-head">
       <h2 id="dayHeading">Day 1 — First Four Letters</h2>
@@ -127,12 +128,14 @@
 </div>
 <!-- ====== ALPHABET PANEL ====== -->
 <div id="panel-alphabet" class="panel">
+  <div class="rug-band" role="presentation"></div>
   <div class="alphabet-section">
     <div class="alpha-header">
       <div>
         <h2>The Armenian Alphabet</h2>
         <p>Created by Mesrop Mashtots in 405 AD — 38 letters, each with a sound you can rely on.</p>
       </div>
+      <img class="alpha-initial" src="images/letter-a-cutout.png" alt="An illuminated Armenian manuscript initial, a bird worked into the letterform">
     </div>
     <div class="letter-grid" id="letterGrid"></div>
     <div class="letter-detail" id="letterDetail"></div>
@@ -182,7 +185,10 @@
 <div id="panel-flashcards" class="panel">
   <div class="flashcard-section">
     <div class="flashcard-top">
-      <h2>Flashcards</h2>
+      <div class="flashcard-top-title">
+        <h2>Flashcards</h2>
+        <img class="flashcard-emblem" src="images/dancing-woman-cutout.png" alt="">
+      </div>
       <div class="flashcard-controls">
         <div class="control-group">
           <span class="control-label">Deck</span>
@@ -224,8 +230,11 @@
 <div id="panel-phrases" class="panel">
   <div class="phrasebook-section">
     <div class="phrases-header">
-      <h2>Phrasebook</h2>
-      <p>Common phrases for everyday Eastern Armenian conversation. Click any phrase to expand it.</p>
+      <div>
+        <h2>Phrasebook</h2>
+        <p>Common phrases for everyday Eastern Armenian conversation. Click any phrase to expand it.</p>
+      </div>
+      <img class="phrases-emblem" src="images/mother-armenia-crop.jpg" alt="Mother Armenia, the monument overlooking Yerevan">
     </div>
     <div class="phrase-cats" id="phraseCats"></div>
     <div class="phrase-list" id="phraseList"></div>
@@ -247,6 +256,18 @@
         <p>Armenia teaches chess as a compulsory school subject from the age of six — the only country in the world that does. Vocabulary sticks when it is attached to something you actually care about, so pick a domain you already know well and learn its words first. Chess, cooking, music, hiking: the subject matters less than the fact that you have opinions about it.</p>
         <div class="culture-arm">Շախմատ</div>
         <div class="culture-rom">shakhmat — chess</div>
+      </div>
+    </div>
+
+    <div class="culture-card">
+      <div class="culture-art photo">
+        <img src="images/tatik-papik-weave.jpg" alt="Woven rug depicting the We Are Our Mountains monument near Stepanakert">
+      </div>
+      <div class="culture-text">
+        <h3>Tatik yev Papik — "Grandma and Grandpa"</h3>
+        <p>This is a woven version of "We Are Our Mountains," the basalt monument outside Stepanakert — two enormous carved heads emerging from the mountain, known affectionately by this name. Rugs like this one turn a landmark into something a household keeps and hands down, the same way this app is trying to turn an alphabet into something you keep.</p>
+        <div class="culture-arm">Մենք ենք մեր սարերը</div>
+        <div class="culture-rom">Menk' yenk' mer sarery — We are our mountains</div>
       </div>
     </div>
 
@@ -327,7 +348,6 @@
 <script src="js/data/curriculum.js"></script>
 <!-- Core -->
 <script src="js/storage.js"></script>
-<script src="js/audio.js"></script>
 <script src="js/srs.js"></script>
 <script src="js/nav.js"></script>
 <!-- Features -->

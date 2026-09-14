@@ -32,7 +32,6 @@ function showLetterDetail(idx, cardEl) {
       <div class="detail-lower">${l.lower}</div>
       <div class="detail-ipa">${l.ipa}</div>
       <div class="detail-name">${l.name}</div>
-      <div class="detail-speak">${speakButton(l.lower, 'Hear ' + l.name)}</div>
       <button class="mark-btn" onclick="toggleLearned(${idx})">${learnedLetters.has(idx) ? '✓ Learned' : 'Mark as Learned'}</button>
     </div>
     <div class="detail-info">
@@ -43,7 +42,7 @@ function showLetterDetail(idx, cardEl) {
     </div>
     <div class="detail-words">
       <h4>Example Words</h4>
-      ${l.words.map(w => `<div class="word-item"><div class="word-arm">${w.arm} ${speakButton(w.arm, 'Hear ' + w.eng)}</div><div class="word-eng">${w.eng}</div></div>`).join('')}
+      ${l.words.map(w => `<div class="word-item"><div class="word-arm">${w.arm}</div><div class="word-eng">${w.eng}</div></div>`).join('')}
     </div>
   `;
   detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
