@@ -1545,6 +1545,21 @@ h1, h2, h3, h4 {
 }
 
 .fc-arm-char.word { font-size: clamp(2.4rem, 8vw, 3rem); }
+
+/* Picture Mode (Drops-style): a plain line icon stands in for the English
+   translation, so recognition has to run picture -> Armenian directly. */
+.fc-icon {
+  width: 84px;
+  height: 84px;
+  color: var(--apricot-deep);
+  margin-bottom: 0.3rem;
+}
+
+.fc-image-toggle.active {
+  background: var(--apricot);
+  border-color: var(--apricot);
+  color: #fff;
+}
 .fc-romanized { font-family: var(--mono); font-size: 0.85rem; color: var(--ink-mid); }
 
 .fc-complete {

@@ -1,10 +1,11 @@
 // ===== FLASHCARDS MODULE =====
 
-let fcDeck     = 'letters'; // 'letters' | 'words'
-let fcCategory = 'all';
-let fcItems    = [];
-let fcIndex    = 0;
-let fcFlipped  = false;
+let fcDeck      = 'letters'; // 'letters' | 'words'
+let fcCategory  = 'all';
+let fcImageMode = false; // words only: picture + Armenian on the front, no English
+let fcItems     = [];
+let fcIndex     = 0;
+let fcFlipped   = false;
 
 function initFlashcards() {
   buildFCCategoryControls();
@@ -18,8 +19,17 @@ function setFCDeck(deck) {
 
   const catGroup = document.getElementById('fcCategoryGroup');
   if (catGroup) catGroup.style.display = deck === 'words' ? 'flex' : 'none';
+  const imgToggle = document.getElementById('fcImageToggle');
+  if (imgToggle) imgToggle.style.display = deck === 'words' ? 'inline-flex' : 'none';
 
   if (deck === 'letters') fcCategory = 'all';
+  loadFCDeck();
+}
+
+function setFCImageMode(on) {
+  fcImageMode = on;
+  const btn = document.getElementById('fcImageToggle');
+  if (btn) btn.classList.toggle('active', on);
   loadFCDeck();
 }
 
@@ -53,13 +63,33 @@ function setFCCategory(catId) {
   loadFCDeck();
 }
 
+// Deck-complete and empty-deck states replace the flashcard markup with a
+// message panel; rebuild it before rendering a card into ids that no longer exist.
+function ensureFlashcardDom() {
+  if (document.getElementById('flashcard')) return;
+  const container = document.querySelector('.flashcard-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-inner" id="flashcardInner">
+        <div class="flashcard-front" id="fcFront"></div>
+        <div class="flashcard-back" id="fcBack"></div>
+      </div>
+    </div>
+  `;
+}
+
 function loadFCDeck() {
+  ensureFlashcardDom();
   if (fcDeck === 'letters') {
     fcItems = [...letters].sort(() => Math.random() - 0.5);
   } else {
-    const pool = fcCategory === 'all'
+    let pool = fcCategory === 'all'
       ? vocabulary
       : vocabulary.filter(w => w.category === fcCategory);
+    // Picture mode only makes sense with a picture — no English fallback,
+    // or it stops being "guess from the image" for every card in the deck.
+    if (fcImageMode) pool = pool.filter(w => vocabIcons[w.id]);
     fcItems = [...pool].sort(() => Math.random() - 0.5);
   }
   fcIndex  = 0;
@@ -75,6 +105,11 @@ function renderFlashcard() {
   const rating  = document.getElementById('fcRating');
 
   if (!frontEl || !backEl) return;
+
+  if (!fcItems.length) {
+    showFlashcardEmpty();
+    return;
+  }
 
   // Reset flip
   card.classList.remove('flipped');
@@ -102,6 +137,20 @@ function renderFlashcard() {
       <div class="fc-ipa">${item.ipa}</div>
       <div class="fc-desc">${item.desc}</div>
     `;
+  } else if (fcImageMode && vocabIcons[item.id]) {
+    // Drops-style: picture and the Armenian word only, no English, no
+    // romanization — the picture has to do the work of translation.
+    frontEl.innerHTML = `
+      <svg class="fc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${vocabIcons[item.id]}</svg>
+      <div class="fc-arm-char word">${item.arm}</div>
+    `;
+    backEl.innerHTML = `
+      <div class="fc-label">English</div>
+      <div class="fc-translation">${item.eng}</div>
+      <div class="fc-romanized">${item.romanized}</div>
+      <div class="fc-ipa">${item.ipa}</div>
+    `;
   } else {
     frontEl.innerHTML = `
       <div class="fc-label">Armenian</div>
@@ -114,6 +163,20 @@ function renderFlashcard() {
       <div class="fc-ipa">${item.ipa}</div>
     `;
   }
+}
+
+function showFlashcardEmpty() {
+  const container = document.querySelector('.flashcard-container');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="fc-complete">
+      <div class="fc-label">No Picture Cards Here</div>
+      <div class="fc-complete-title">This category has no picture words yet</div>
+      <button class="mark-btn" onclick="setFCImageMode(false)">Switch to Word Mode</button>
+    </div>
+  `;
+  const rating = document.getElementById('fcRating');
+  if (rating) rating.style.display = 'none';
 }
 
 function flipCard() {
@@ -180,15 +243,5 @@ function showFlashcardComplete() {
 }
 
 function restartFlashcards() {
-  // Restore the original card HTML structure
-  const container = document.querySelector('.flashcard-container');
-  container.innerHTML = `
-    <div class="flashcard" id="flashcard" onclick="flipCard()">
-      <div class="flashcard-inner" id="flashcardInner">
-        <div class="flashcard-front" id="fcFront"></div>
-        <div class="flashcard-back" id="fcBack"></div>
-      </div>
-    </div>
-  `;
-  loadFCDeck();
+  loadFCDeck(); // ensureFlashcardDom() inside rebuilds the card markup
 }

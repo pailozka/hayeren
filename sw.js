@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hayeren-v6';
+const CACHE_NAME = 'hayeren-v7';
 const APP_SHELL = [
   './',
   'index.html',
@@ -21,6 +21,7 @@ const APP_SHELL = [
   'js/data/phrases.js',
   'js/data/grammar.js',
   'js/data/curriculum.js',
+  'js/data/icons.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'images/pattern-tile.jpg',
