@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hayeren-v7';
+const CACHE_NAME = 'hayeren-v8';
 const APP_SHELL = [
   './',
   'index.html',
@@ -53,14 +53,41 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Vendored letter illustrations and audio (39 of each, ~2MB total) never
+// change once published, so they don't need the shell's precache-at-install
+// treatment — that would make first install download all of it up front,
+// most of which a learner may never reach. Instead they're cached on first
+// fetch, then served cache-only forever after: no repeat network hit every
+// time a letter card is revisited, unlike the shell's always-revalidate below.
+function isVendoredLetterAsset(url) {
+  return /\/(images|audio)\/letters\//.test(url);
+}
+
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  const url = event.request.url;
+
+  if (isVendoredLetterAsset(url)) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cached => {
       const network = fetch(event.request)
         .then(response => {
-          if (response.ok && event.request.url.startsWith(self.location.origin)) {
+          if (response.ok && url.startsWith(self.location.origin)) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           }

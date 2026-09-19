@@ -5,15 +5,29 @@ let _phrasebookInited = false;
 let _dailyInited = false;
 let _calendarInited = false;
 
+const PANEL_NAMES = ['home', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
+
 const prefersReducedMotion = window.matchMedia
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function showPanel(name, btnEl) {
+// `fromHash` is true when called by the hashchange listener (back/forward,
+// a deep link, or a manual edit) — in that case the hash is already correct
+// and shouldn't be rewritten, only read.
+function showPanel(name, btnEl, fromHash) {
+  if (!PANEL_NAMES.includes(name)) name = 'home';
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
-  if (btnEl) btnEl.classList.add('active');
+  const tab = btnEl || document.querySelector(`.tab-btn[data-panel="${name}"]`);
+  if (tab) {
+    tab.classList.add('active');
+    tab.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
   window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+
+  if (!fromHash && location.hash.slice(1) !== name) {
+    history.pushState(null, '', '#' + name);
+  }
 
   if (name === 'home') {
     initDashboard();
@@ -38,3 +52,80 @@ function showPanel(name, btnEl) {
     else renderCalendar();
   }
 }
+
+// ---- Hash routing ----
+// Panels are deep-linkable (#quiz, #alphabet, …) and Back/Forward move
+// between them, without turning this into a real router — there's still
+// only one level of navigation.
+window.addEventListener('hashchange', () => {
+  showPanel(location.hash.slice(1), null, true);
+});
+
+function initRouteFromHash() {
+  const name = location.hash.slice(1);
+  if (name && PANEL_NAMES.includes(name)) showPanel(name, null, true);
+}
+
+// ---- Keyboard control ----
+// Ignores keystrokes while typing in a field (the quiz's "Type it" input,
+// the Review new-per-day setting) so shortcuts don't fight with typing.
+function isTypingTarget(el) {
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (isTypingTarget(e.target)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+  const activePanel = document.querySelector('.panel.active');
+  const panelName = activePanel ? activePanel.id.replace('panel-', '') : null;
+
+  // Flashcards: Space/Enter flips, 1/2/3 rate once flipped.
+  if (panelName === 'flashcards') {
+    const rating = document.getElementById('fcRating');
+    const isFlipped = document.getElementById('flashcard')?.classList.contains('flipped');
+    if ((e.key === ' ' || e.key === 'Enter') && !isFlipped) {
+      e.preventDefault();
+      document.getElementById('flashcard')?.click();
+      return;
+    }
+    if (isFlipped && rating && rating.style.display !== 'none') {
+      if (e.key === '1') { rateCard('hard'); return; }
+      if (e.key === '2') { rateCard('good'); return; }
+      if (e.key === '3') { rateCard('easy'); return; }
+    }
+  }
+
+  // Review: same reveal + rate pattern as Flashcards.
+  if (panelName === 'review') {
+    if ((e.key === ' ' || e.key === 'Enter') && !reviewRevealed) {
+      e.preventDefault();
+      document.getElementById('rvRevealBtn')?.click();
+      return;
+    }
+    if (reviewRevealed) {
+      if (e.key === '1') { rateReview('hard'); return; }
+      if (e.key === '2') { rateReview('good'); return; }
+      if (e.key === '3') { rateReview('easy'); return; }
+    }
+  }
+
+  // Quiz: 1-4 pick a multiple-choice option; Enter advances once answered.
+  if (panelName === 'quiz') {
+    if (['1', '2', '3', '4'].includes(e.key)) {
+      const opts = document.querySelectorAll('.quiz-opt:not(:disabled)');
+      const opt = opts[Number(e.key) - 1];
+      if (opt) { opt.click(); return; }
+    }
+    if (e.key === 'Enter' && document.getElementById('nextBtn')?.classList.contains('visible')) {
+      document.getElementById('nextBtn').click();
+      return;
+    }
+  }
+
+  // Program: arrow keys move between curriculum days.
+  if (panelName === 'daily') {
+    if (e.key === 'ArrowRight') { switchDay(Math.min(activeDay + 1, curriculum.length)); return; }
+    if (e.key === 'ArrowLeft')  { switchDay(Math.max(activeDay - 1, 1)); return; }
+  }
+});

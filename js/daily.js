@@ -4,28 +4,6 @@
 
 let activeDay = 1;
 
-function buildWeekDots() {
-  const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0
-  const weekActivity = getWeekActivity();
-
-  const container = document.getElementById('weekDots');
-  if (!container) return;
-  container.innerHTML = '';
-
-  labels.forEach((d, i) => {
-    const dot = document.createElement('div');
-    const isToday = i === todayIdx;
-    const isDone = weekActivity[i];
-    dot.className = 'day-dot'
-      + (isDone && !isToday ? ' done' : '')
-      + (isToday && isDone ? ' done today' : '')
-      + (isToday && !isDone ? ' today' : '');
-    dot.textContent = d;
-    container.appendChild(dot);
-  });
-}
-
 // ---- Day selector ----
 
 function buildDaySelector() {
@@ -120,7 +98,7 @@ function renderDaySessions(day) {
     };
 
     const btn = block.querySelector('.complete-btn');
-    if (!done) btn.onclick = () => completeSession(day.day, key, btn);
+    if (!done) btn.onclick = () => completeSession(day.day, key, btn, session);
 
     host.appendChild(block);
 
@@ -161,7 +139,7 @@ function toggleSessionBody(body) {
   }
 }
 
-function completeSession(dayNum, key, btn) {
+function completeSession(dayNum, key, btn, session) {
   markSessionComplete(dayNum, key);
   btn.textContent = '✓ Completed';
   btn.disabled = true;
@@ -171,9 +149,14 @@ function completeSession(dayNum, key, btn) {
     block.querySelector('.session-done-badge').classList.add('visible');
   }
 
+  // Completing a phrase session is the only way phrases enter the SRS queue —
+  // there's no separate phrase quiz/flashcard deck to seed them otherwise.
+  if (session && session.kind === 'phrases') {
+    phrases.filter(p => p.category === session.phraseCategory).slice(0, 6)
+      .forEach(p => reviewItem('phrase', p.id, 'good'));
+  }
+
   recordActivity();
-  updateStreakDisplay();
-  buildWeekDots();
   buildDaySelector();
 
   const meta = document.getElementById('dayMeta');
@@ -318,27 +301,28 @@ function renderDrillSession(s) {
   const d = s.drill;
   const isLetters = d.mode === 'letters';
   const label = isLetters
-    ? `letters ${d.range[0] + 1}–${d.range[1] + 1}`
+    ? `letters 1–${d.upTo}`
     : (d.category === 'all' ? 'all vocabulary' : `the ${d.category} set`);
 
   return `
     <p class="session-intro">Drill ${label} until you can answer without hesitating. Use the Quiz for recognition and Flashcards for recall.</p>
     <div class="drill-actions">
-      <button class="mark-btn" onclick="startDrillQuiz('${d.mode}', '${d.category || ''}', '${d.direction || 'toSound'}')">
+      <button class="mark-btn" onclick="startDrillQuiz('${d.mode}', '${d.category || ''}', '${d.direction || 'toSound'}', ${d.upTo || 'null'})">
         Open Quiz
       </button>
-      <button class="mark-btn secondary" onclick="startDrillFlashcards('${d.mode}', '${d.category || ''}')">
+      <button class="mark-btn secondary" onclick="startDrillFlashcards('${d.mode}', '${d.category || ''}', ${d.upTo || 'null'})">
         Open Flashcards
       </button>
     </div>`;
 }
 
-// Hand-off from a Daily drill into the Quiz / Flashcards tabs.
-function startDrillQuiz(mode, category, direction) {
-  const tab = [...document.querySelectorAll('.tab-btn')].find(b => b.textContent.trim() === 'Quiz');
-  showPanel('quiz', tab);
+// Hand-off from a Daily drill into the Quiz / Flashcards tabs. `upTo` scopes
+// a letters drill to the letters taught by this point in the curriculum —
+// without it, Day 1's "drill letters 1-4" would quietly quiz all 39.
+function startDrillQuiz(mode, category, direction, upTo) {
+  showPanel('quiz', document.querySelector('.tab-btn[data-panel="quiz"]'));
   if (mode === 'letters') {
-    setQuizMode('letters');
+    setQuizMode('letters', upTo);
     if (direction) setQuizDirection(direction);
   } else {
     setQuizMode('words');
@@ -350,11 +334,11 @@ function startDrillQuiz(mode, category, direction) {
   }
 }
 
-function startDrillFlashcards(mode, category) {
-  const tab = [...document.querySelectorAll('.tab-btn')].find(b => b.textContent.trim() === 'Flashcards');
-  showPanel('flashcards', tab);
+function startDrillFlashcards(mode, category, upTo) {
+  showPanel('flashcards', document.querySelector('.tab-btn[data-panel="flashcards"]'));
   if (!_flashcardsInited) { _flashcardsInited = true; initFlashcards(); }
   setFCDeck(mode === 'letters' ? 'letters' : 'words');
+  if (mode === 'letters') setFCLetterScope(upTo);
   if (mode !== 'letters' && category && category !== 'all') setFCCategory(category);
 }
 

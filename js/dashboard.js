@@ -66,7 +66,7 @@ function renderDashPrimary() {
 
     <button class="dash-card" onclick="goPanel('flashcards')">
       <div class="dash-card-kicker">Free practice</div>
-      <div class="dash-card-figure">${learnedLetters.size}<span>/38</span></div>
+      <div class="dash-card-figure">${learnedLetters.size}<span>/${letters.length}</span></div>
       <div class="dash-card-title">Letters marked learned</div>
       <div class="dash-card-note">No schedule, no program. Shuffle a deck and drill whatever you feel like.</div>
       <span class="dash-card-go">Open flashcards →</span>
@@ -128,7 +128,7 @@ function renderDashJump() {
   const host = document.getElementById('dashJump');
   if (!host) return;
   const jumps = [
-    { panel: 'alphabet',   title: 'The alphabet',  note: 'All 38 letters, with sound, notes and example words.' },
+    { panel: 'alphabet',   title: 'The alphabet',  note: `All ${letters.length} letters, with sound, notes and example words.` },
     { panel: 'quiz',       title: 'Quiz',          note: 'Multiple choice, letters or vocabulary, both directions.' },
     { panel: 'flashcards', title: 'Flashcards',    note: 'Flip cards that feed the review scheduler.' },
     { panel: 'phrases',    title: 'Phrasebook',    note: `${phrases.length} phrases across ${phraseCategories.length} situations.` },
@@ -143,34 +143,7 @@ function renderDashJump() {
 }
 
 function renderDashHeatmap() {
-  const host = document.getElementById('dashHeatmap');
-  if (!host) return;
-  const saved = document.getElementById('calYearMap');
-  // Reuse the calendar renderer by pointing it at this element.
-  const counts = loadReviewCounts();
-  const activeSet = new Set(loadStreak().activeDates);
-  const todayIso = isoToday();
-
-  const today = new Date();
-  const end = new Date(today);
-  end.setDate(end.getDate() + (7 - ((today.getDay() + 6) % 7) - 1));
-  const cursor = new Date(end);
-  cursor.setDate(cursor.getDate() - (52 * 7 - 1));
-
-  let html = '';
-  for (let w = 0; w < 52; w++) {
-    html += '<div class="hm-week">';
-    for (let d = 0; d < 7; d++) {
-      const iso = cursor.toISOString().slice(0, 10);
-      const count = counts[iso] || 0;
-      const level = intensityFor(count, activeSet.has(iso));
-      const future = iso > todayIso;
-      html += `<div class="hm-cell level-${level}${future ? ' future' : ''}${iso === todayIso ? ' today' : ''}" title="${count ? `${iso} — ${count} reviews` : iso}"></div>`;
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    html += '</div>';
-  }
-  host.innerHTML = html;
+  render52WeekHeatmap('dashHeatmap');
 }
 
 function updateDueBadge() {
@@ -184,14 +157,7 @@ function updateDueBadge() {
 // ---- Navigation helpers used by the dashboard ----
 
 function goPanel(name) {
-  const labels = {
-    home: 'Home', review: 'Review', daily: 'Program', alphabet: 'Alphabet',
-    quiz: 'Quiz', flashcards: 'Flashcards', phrases: 'Phrases',
-    calendar: 'Calendar', resources: 'Resources',
-  };
-  const tab = [...document.querySelectorAll('.tab-btn')]
-    .find(b => b.textContent.trim().startsWith(labels[name]));
-  showPanel(name, tab);
+  showPanel(name, document.querySelector(`.tab-btn[data-panel="${name}"]`));
 }
 
 function goDay(n) {

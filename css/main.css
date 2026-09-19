@@ -33,6 +33,14 @@
   /* Saffron/ochre — the carpet's small flame accents */
   --ochre: #cf9433;
 
+  /* Sampled from the թռչնագիր bird-letter illustrations (Alphabet panel),
+     so that art sits on a page sharing its own palette rather than looking
+     pasted on. Used sparingly — this is still a red-and-cream page. */
+  --rose:      #cf8f8a;
+  --rose-wash: #f7eae8;
+  --olive:     #a5ae56;
+  --coral:     #d8492a;
+
   /* Indigo and viridian — the carpet's cool counterweights */
   --indigo:   #34506b;
   --viridian: #2f6b5a;
@@ -77,6 +85,16 @@ body {
   line-height: 1.65;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* One visible ring for every keyboard-focusable control in the app — the
+   file had none before, which made the whole interface unreachable by
+   keyboard without guessing. Mouse/touch clicks never trigger :focus-visible,
+   so this costs nothing visually for pointer use. */
+:focus-visible {
+  outline: 2px solid var(--apricot);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* A flat, seamless textile pattern held far back as woven texture, not a
@@ -679,7 +697,40 @@ h1, h2, h3, h4 {
 
 .rv-back.visible { max-height: 200px; opacity: 1; margin-top: 0.6rem; }
 
+.rv-literal {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-mid);
+  margin-top: 0.2rem;
+}
+
 .rv-empty { max-width: 42ch; }
+
+.rv-intake-append { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.rv-intake-append p { font-size: 0.9rem; color: var(--ink-mid); margin-bottom: 0.6rem; }
+
+.rv-newperday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--ink-mid);
+}
+
+.rv-newperday input {
+  width: 4rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border-firm);
+  border-radius: 2px;
+  padding: 0.3rem 0.5rem;
+  text-align: center;
+}
 
 .rv-empty-mark {
   font-family: var(--serif-display);
@@ -1226,6 +1277,8 @@ h1, h2, h3, h4 {
 
 .alpha-header h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
 .alpha-header p { margin-top: 0.4rem; color: var(--ink-mid); font-style: italic; }
+.alpha-credit { font-size: 0.8rem; }
+.alpha-credit a { color: var(--apricot-deep); }
 
 /* An illuminated manuscript initial — the historical ancestor of "decorating
    a letter," used here instead of an icon. */
@@ -1240,10 +1293,14 @@ h1, h2, h3, h4 {
   .alpha-initial { display: none; }
 }
 
+/* Illustrations are թռչնագիր — traditional Armenian bird-letters, one drawn
+   per glyph — sourced from the Armenian Museum of Moscow (credited in
+   Resources). Three tones sampled from the artwork itself, used sparingly
+   so the page still reads as the manuscript palette, not the illustrations'. */
 .letter-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.7rem;
   margin-bottom: 2rem;
 }
 
@@ -1252,10 +1309,12 @@ h1, h2, h3, h4 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 0.8rem 0.4rem;
+  padding: 0.9rem 0.5rem 0.7rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.18s;
+  font: inherit;
+  width: 100%;
 }
 
 .letter-card:hover {
@@ -1275,19 +1334,56 @@ h1, h2, h3, h4 {
   top: 5px; right: 5px;
   width: 5px; height: 5px;
   border-radius: 50%;
-  background: var(--leaf);
+  background: var(--olive);
 }
 
-.armenian-char {
-  font-family: var(--serif-display);
-  font-size: 1.85rem;
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--ink);
+.letter-card-art {
+  display: block;
+  width: 100%;
+  max-width: 76px;
+  height: auto;
+  margin: 0 auto 0.4rem;
 }
 
 .latin-trans { font-family: var(--mono); font-size: 0.74rem; color: var(--apricot-deep); }
 .letter-name { font-size: 0.74rem; font-style: italic; color: var(--ink-mid); }
+
+/* Shared play control — a small circular button on each card, a larger one
+   in the detail panel. One <audio> element handles playback for both. */
+.letter-audio-btn {
+  font: inherit;
+  cursor: pointer;
+  background: var(--surface2);
+  border: 1px solid var(--border-firm);
+  color: var(--ink);
+  transition: all 0.18s;
+}
+
+.card-audio-btn {
+  position: absolute;
+  top: 5px; left: 5px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.card-audio-btn:hover, .card-audio-btn.playing { opacity: 1; border-color: var(--coral); background: var(--rose-wash); }
+
+.detail-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 3px;
+  padding: 0.4rem 0.8rem;
+  margin-top: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+.detail-audio-btn:hover, .detail-audio-btn.playing { border-color: var(--coral); background: var(--rose-wash); color: var(--coral); }
 
 .letter-detail {
   display: none;
@@ -1302,19 +1398,20 @@ h1, h2, h3, h4 {
 
 .detail-glyph { text-align: center; }
 
+.detail-art {
+  display: block;
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  margin: 0 auto 0.75rem;
+}
+
 .detail-char {
   font-family: var(--serif-display);
-  font-size: 4.5rem;
+  font-size: 3rem;
   font-weight: 600;
   line-height: 1;
   color: var(--apricot-deep);
-}
-
-.detail-lower {
-  font-family: var(--serif-display);
-  font-size: 2rem;
-  line-height: 1.1;
-  color: var(--ink-mid);
 }
 
 .detail-ipa { font-family: var(--mono); font-size: 0.8rem; color: var(--apricot); margin-top: 0.4rem; }
@@ -1468,6 +1565,38 @@ h1, h2, h3, h4 {
 
 .next-btn { display: none; }
 .next-btn.visible { display: inline-block; }
+
+/* Typed-answer surface (production recall) — replaces .quiz-options'
+   button grid when "Type it" is selected. */
+.quiz-type {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.quiz-type-input {
+  flex: 1 1 200px;
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border-firm);
+  border-radius: 2px;
+  padding: 0.7rem 0.9rem;
+}
+
+.quiz-type-input:focus { outline: none; border-color: var(--apricot); }
+.quiz-type-input:disabled { opacity: 0.75; }
+
+.quiz-type-feedback {
+  flex-basis: 100%;
+  font-style: italic;
+  font-size: 0.92rem;
+}
+
+.quiz-type-feedback.correct { color: var(--leaf); }
+.quiz-type-feedback.wrong   { color: var(--rubric); }
 
 /* ======= FLASHCARDS ======= */
 .flashcard-top { margin-bottom: 1.25rem; }
@@ -1691,7 +1820,17 @@ h1, h2, h3, h4 {
 }
 
 .resource-item h4 { font-size: 1.08rem; margin-bottom: 0.3rem; }
+.resource-item h4 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--border-firm); }
+.resource-item h4 a:hover { color: var(--apricot-deep); border-color: var(--apricot); }
 .resource-item p { font-size: 0.88rem; color: var(--ink-mid); }
+
+.resources-credit {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-mid);
+  margin: -0.5rem 0 1.5rem;
+}
+.resources-credit a { color: var(--apricot-deep); }
 
 .resource-tag {
   display: inline-block;

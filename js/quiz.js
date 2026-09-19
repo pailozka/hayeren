@@ -1,15 +1,22 @@
 // ===== QUIZ MODULE =====
-// Handles both Letter Quiz and Word Quiz modes.
+// Handles both Letter Quiz and Word Quiz modes, each answerable two ways:
+// multiple choice (recognition) or typed (production). Typing always asks
+// for the Latin side — romanization for letters, English for words — since
+// producing the Armenian glyphs themselves needs a script the learner
+// hasn't been taught to type, only to read.
 
 // ---- State ----
-let quizMode      = 'letters'; // 'letters' | 'words'
-let quizDirection = 'toSound'; // 'toSound' | 'toChar'  (letters mode only)
+let quizMode       = 'letters'; // 'letters' | 'words'
+let quizDirection  = 'toSound'; // 'toSound' | 'toChar'  (letters mode, choice answers only)
+let quizAnswerMode = 'choice';  // 'choice' | 'type'
 let wordQuizCategory = 'all';
+let quizLetterUpTo = null; // scopes the letter pool to letters[0..upTo) — set by a Daily drill
 
 let quizLetters  = [];
 let quizIndex    = 0;
 let quizScore    = 0;
 let quizAnswered = false;
+let quizTypedMiss = false; // true once the learner has gotten a typed answer wrong once this question
 
 let wordQuizItems    = [];
 let wordQuizIndex    = 0;
@@ -27,8 +34,9 @@ function initQuizPanel() {
 }
 
 // ---- Mode / Direction controls ----
-function setQuizMode(mode) {
+function setQuizMode(mode, upTo) {
   quizMode = mode;
+  if (mode === 'letters') quizLetterUpTo = typeof upTo === 'number' ? upTo : null;
   syncQuizControls();
   if (mode === 'letters') {
     showLetterQuizUI();
@@ -46,11 +54,23 @@ function setQuizDirection(dir) {
   initLetterQuiz();
 }
 
+function setQuizAnswerMode(mode) {
+  quizAnswerMode = mode;
+  document.getElementById('btnAnsChoice').classList.toggle('active', mode === 'choice');
+  document.getElementById('btnAnsType').classList.toggle('active', mode === 'type');
+  // Direction only means something for multiple-choice letters — typed
+  // answers always go Armenian -> Latin, so hide it in type mode.
+  const dirGroup = document.getElementById('directionGroup');
+  if (dirGroup) dirGroup.style.display = (quizMode === 'letters' && mode === 'choice') ? '' : 'none';
+  if (quizMode === 'letters') renderLetterQuestion();
+  else renderWordQuestion();
+}
+
 function syncQuizControls() {
   document.getElementById('btnModeLetters').classList.toggle('active', quizMode === 'letters');
   document.getElementById('btnModeWords').classList.toggle('active', quizMode === 'words');
   const dirGroup = document.getElementById('directionGroup');
-  if (dirGroup) dirGroup.style.display = quizMode === 'letters' ? '' : 'none';
+  if (dirGroup) dirGroup.style.display = (quizMode === 'letters' && quizAnswerMode === 'choice') ? '' : 'none';
 }
 
 function showLetterQuizUI() {
@@ -82,9 +102,28 @@ function resetQuizCard() {
   if (nb) { nb.classList.remove('visible'); nb.onclick = nextQuestion; nb.textContent = 'Next →'; }
 }
 
+// ---- Answer normalization (typed mode) ----
+// Strips the noise a correct answer shouldn't be marked wrong for, and
+// expands a field's "/"- or ","-separated alternates into a set of any of
+// which counts as correct — e.g. sound "vo/o" accepts either "vo" or "o".
+function normalizeAnswer(s) {
+  return String(s)
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[ʼ‘’'`ʻʾ]/g, '') // apostrophes & aspiration marks
+    .replace(/[.,!?]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function acceptableAnswers(field) {
+  return String(field).split(/[/,]/).map(normalizeAnswer).filter(Boolean);
+}
+
 // ---- Letter Quiz ----
 function initLetterQuiz() {
-  quizLetters  = [...letters].sort(() => Math.random() - 0.5).slice(0, 15);
+  const pool = typeof quizLetterUpTo === 'number' ? letters.slice(0, quizLetterUpTo) : letters;
+  quizLetters  = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(15, pool.length));
   quizIndex    = 0;
   quizScore    = 0;
   quizAnswered = false;
@@ -97,7 +136,22 @@ function renderLetterQuestion() {
   const l = quizLetters[quizIndex];
   updateScoreAndProgress(quizScore, quizIndex, quizLetters.length);
   quizAnswered = false;
+  quizTypedMiss = false;
   document.getElementById('nextBtn').classList.remove('visible');
+
+  if (quizAnswerMode === 'type') {
+    document.getElementById('quizPrompt').textContent = 'Type the romanization';
+    const charEl = document.getElementById('quizChar');
+    charEl.textContent = l.arm;
+    charEl.style.fontSize = '';
+    document.getElementById('quizSub').textContent = l.armName;
+    renderTypedAnswer(acceptableAnswers(l.sound), (correctOnFirstTry) => {
+      reviewItem('letter', l.id, correctOnFirstTry ? 'good' : 'hard');
+      bumpReviewCount(1);
+      recordActivity();
+    });
+    return;
+  }
 
   if (quizDirection === 'toSound') {
     document.getElementById('quizPrompt').textContent = 'What sound does this letter make?';
@@ -130,13 +184,10 @@ function checkLetterAnswer(selected, correct, btn) {
   if (selected === correct) quizScore++;
 
   const l = quizLetters[quizIndex];
-  const idx = letters.indexOf(l);
-  if (idx !== -1) reviewItem('letter', idx, selected === correct ? 'good' : 'hard');
+  reviewItem('letter', l.id, selected === correct ? 'good' : 'hard');
   bumpReviewCount(1);
 
   recordActivity();
-  updateStreakDisplay();
-  buildWeekDots();
   document.getElementById('nextBtn').classList.add('visible');
 }
 
@@ -152,7 +203,7 @@ function showLetterResult() {
     <div class="quiz-prompt">Quiz Complete!</div>
     <img class="quiz-result-mark" src="images/pomegranate-cutout.png" alt="">
     <div class="quiz-result-score">${quizScore} <span>/ ${total}</span></div>
-    <div class="quiz-subtext">${quizScore >= 12 ? 'Excellent! You know these letters well.' : quizScore >= 8 ? 'Good progress! Keep reviewing.' : 'Keep studying — it takes time!'}</div>
+    <div class="quiz-subtext">${quizScore >= total * 0.8 ? 'Excellent! You know these letters well.' : quizScore >= total * 0.5 ? 'Good progress! Keep reviewing.' : 'Keep studying — it takes time!'}</div>
   `;
   document.getElementById('quizOptions').innerHTML = '';
   document.getElementById('quizProgress').style.width = '100%';
@@ -202,7 +253,22 @@ function renderWordQuestion() {
   const w = wordQuizItems[wordQuizIndex];
   updateScoreAndProgress(wordQuizScore, wordQuizIndex, wordQuizItems.length);
   wordQuizAnswered = false;
+  quizTypedMiss = false;
   document.getElementById('nextBtn').classList.remove('visible');
+
+  if (quizAnswerMode === 'type') {
+    document.getElementById('quizPrompt').textContent = 'What does this word mean?';
+    const charEl = document.getElementById('quizChar');
+    charEl.textContent = w.arm;
+    charEl.style.fontSize = '3rem';
+    document.getElementById('quizSub').textContent = w.romanized;
+    renderTypedAnswer(acceptableAnswers(w.eng), (correctOnFirstTry) => {
+      reviewItem('word', w.id, correctOnFirstTry ? 'good' : 'hard');
+      bumpReviewCount(1);
+      recordActivity();
+    });
+    return;
+  }
 
   // Alternate question type based on index
   const types = ['armToEng', 'engToArm'];
@@ -244,8 +310,6 @@ function checkWordAnswer(selected, correct, btn) {
   bumpReviewCount(1);
 
   recordActivity();
-  updateStreakDisplay();
-  buildWeekDots();
   document.getElementById('nextBtn').classList.add('visible');
 }
 
@@ -277,6 +341,7 @@ function buildOptions(correctVal, allVals) {
 
 function renderOptions(opts, correctVal) {
   const container = document.getElementById('quizOptions');
+  container.className = 'quiz-options';
   container.innerHTML = '';
   opts.forEach(opt => {
     const btn = document.createElement('button');
@@ -288,6 +353,58 @@ function renderOptions(opts, correctVal) {
     };
     container.appendChild(btn);
   });
+}
+
+// Renders a text input + submit for typed-answer questions. `onSettled(good)`
+// fires once the question is fully resolved (right first try, right after a
+// miss, or given up), with `good` true only for a clean first-try match.
+function renderTypedAnswer(accepted, onSettled) {
+  const container = document.getElementById('quizOptions');
+  container.className = 'quiz-type';
+  container.innerHTML = `
+    <input type="text" id="quizTypeInput" class="quiz-type-input" autocomplete="off"
+      autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+    <button class="mark-btn" id="quizTypeSubmit">Check</button>
+    <div class="quiz-type-feedback" id="quizTypeFeedback" aria-live="polite"></div>
+  `;
+  const input = document.getElementById('quizTypeInput');
+  const submitBtn = document.getElementById('quizTypeSubmit');
+  const feedback = document.getElementById('quizTypeFeedback');
+  let settled = false;
+
+  function submit() {
+    if (settled) return;
+    const val = normalizeAnswer(input.value);
+    if (!val) return;
+    const correct = accepted.includes(val);
+
+    if (correct) {
+      settled = true;
+      input.disabled = true;
+      submitBtn.disabled = true;
+      feedback.textContent = quizTypedMiss ? `Correct — it was "${accepted[0]}."` : 'Correct!';
+      feedback.className = 'quiz-type-feedback correct';
+      onSettled(!quizTypedMiss);
+      document.getElementById('nextBtn').classList.add('visible');
+    } else if (!quizTypedMiss) {
+      quizTypedMiss = true;
+      feedback.textContent = 'Not quite — try once more.';
+      feedback.className = 'quiz-type-feedback wrong';
+      input.select();
+    } else {
+      settled = true;
+      input.disabled = true;
+      submitBtn.disabled = true;
+      feedback.textContent = `The answer was "${accepted[0]}."`;
+      feedback.className = 'quiz-type-feedback wrong';
+      onSettled(false);
+      document.getElementById('nextBtn').classList.add('visible');
+    }
+  }
+
+  submitBtn.onclick = submit;
+  input.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+  input.focus();
 }
 
 function markOptions(selected, correct) {

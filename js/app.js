@@ -3,10 +3,10 @@
 
 function init() {
   recordActivity();
-  updateStreakDisplay();
   buildAlphabet();
   saveLearnedLetters(learnedLetters);
-  initDashboard();
+  initDashboard(); // always primes the due badge, even if a hash routes elsewhere
+  initRouteFromHash();
 }
 
 init();

@@ -5,12 +5,23 @@
 const KEYS = {
   streak:        'hayeren_streak',
   learnedLetters:'hayeren_learnedLetters',
-  learnedWords:  'hayeren_learnedWords',
-  tasksDone:     'hayeren_tasksDone',
   srs:           'hayeren_srs',
   dayProgress:   'hayeren_dayProgress',
   reviewCounts:  'hayeren_reviewCounts',
+  newPerDay:     'hayeren_newPerDay',
+  newIntroduced: 'hayeren_newIntroduced',
+  schemaVersion: 'hayeren_schemaVersion',
 };
+
+// The letter order as it existed before letters.js gained stable `id` slugs and
+// the letters array was indexed by position for everything, including SRS keys
+// and the learned-letters set. Needed only to translate old numeric records
+// during the one-time migration below — do not use this list anywhere else.
+const LEGACY_LETTER_ORDER = [
+  'ayb','ben','gim','da','yech','za','eh','et','to','zhe','ini','liwn','khe',
+  'ca','ken','ho','ja','ghad','che','men','yi','now','sha','vo','ch','peh',
+  'jheh','ra','seh','vev','tiwn','reh','tsa','yiwn','piwr','keh','oh','feh',
+];
 
 // ---- Helpers ----
 
@@ -21,6 +32,50 @@ function isoToday() {
 function isoYesterday() {
   const d = new Date(Date.now() - 86400000);
   return d.toISOString().slice(0, 10);
+}
+
+// ---- Schema migration ----
+// v1: letter SRS keys and the learned-letters set moved from numeric array
+// index ("letter:12") to a stable slug id ("letter:khe"), so reordering or
+// inserting letters can never silently corrupt old progress again.
+function runMigrations() {
+  const version = Number(localStorage.getItem(KEYS.schemaVersion) || 0);
+  if (version >= 1) return;
+
+  // Learned letters: array of old numeric indices -> array of slugs.
+  const rawLearned = localStorage.getItem(KEYS.learnedLetters);
+  if (rawLearned) {
+    try {
+      const arr = JSON.parse(rawLearned);
+      if (Array.isArray(arr) && arr.some(v => typeof v === 'number')) {
+        const migrated = arr
+          .map(v => (typeof v === 'number' ? LEGACY_LETTER_ORDER[v] : v))
+          .filter(Boolean);
+        localStorage.setItem(KEYS.learnedLetters, JSON.stringify(migrated));
+      }
+    } catch { /* leave as-is */ }
+  }
+
+  // SRS records: "letter:<digits>" keys -> "letter:<slug>" keys.
+  const rawSrs = localStorage.getItem(KEYS.srs);
+  if (rawSrs) {
+    try {
+      const all = JSON.parse(rawSrs);
+      const migrated = {};
+      Object.entries(all).forEach(([key, rec]) => {
+        const m = /^letter:(\d+)$/.exec(key);
+        if (m) {
+          const slug = LEGACY_LETTER_ORDER[Number(m[1])];
+          if (slug) migrated['letter:' + slug] = rec;
+        } else {
+          migrated[key] = rec;
+        }
+      });
+      localStorage.setItem(KEYS.srs, JSON.stringify(migrated));
+    } catch { /* leave as-is */ }
+  }
+
+  localStorage.setItem(KEYS.schemaVersion, '1');
 }
 
 // ---- Streak ----
@@ -69,68 +124,22 @@ function getWeekActivity() {
 }
 
 // ---- Learned Letters ----
-
-// Migrate from old unnamespaced key on first load
-function migrateOldKeys() {
-  if (!localStorage.getItem(KEYS.learnedLetters)) {
-    const old = localStorage.getItem('learnedLetters');
-    if (old) {
-      localStorage.setItem(KEYS.learnedLetters, old);
-      localStorage.removeItem('learnedLetters');
-    }
-  }
-}
+// Set of letter `id` slugs (e.g. "ayb", "khe") — see runMigrations() above.
 
 function loadLearnedLetters() {
-  migrateOldKeys();
+  runMigrations();
   const raw = localStorage.getItem(KEYS.learnedLetters);
   return new Set(raw ? JSON.parse(raw) : []);
 }
 
 function saveLearnedLetters(set) {
   localStorage.setItem(KEYS.learnedLetters, JSON.stringify([...set]));
-  updateLearnedCountDisplay(set.size);
-}
-
-function updateLearnedCountDisplay(size) {
-  const el = document.getElementById('learnedCount');
-  if (el) el.innerHTML = size + ' <span>/ ' + letters.length + '</span>';
-}
-
-// ---- Tasks Done ----
-
-function loadTasksDone() {
-  const raw = localStorage.getItem(KEYS.tasksDone);
-  return raw ? JSON.parse(raw) : {};
-}
-
-function saveTasksDone(obj) {
-  localStorage.setItem(KEYS.tasksDone, JSON.stringify(obj));
-}
-
-function isTaskDoneToday(taskId) {
-  const all = loadTasksDone();
-  const today = isoToday();
-  return Array.isArray(all[today]) && all[today].includes(taskId);
-}
-
-function toggleTaskDoneInStorage(taskId) {
-  const all = loadTasksDone();
-  const today = isoToday();
-  if (!Array.isArray(all[today])) all[today] = [];
-  const idx = all[today].indexOf(taskId);
-  if (idx === -1) {
-    all[today].push(taskId);
-  } else {
-    all[today].splice(idx, 1);
-  }
-  saveTasksDone(all);
-  return all[today].includes(taskId); // returns new done state
 }
 
 // ---- Spaced Repetition ----
 
 function loadSrsData() {
+  runMigrations();
   const raw = localStorage.getItem(KEYS.srs);
   if (!raw) return {};
   try { return JSON.parse(raw); } catch { return {}; }
@@ -140,9 +149,37 @@ function saveSrsData(obj) {
   localStorage.setItem(KEYS.srs, JSON.stringify(obj));
 }
 
+// ---- New-card intake (Review tab) ----
+// How many never-studied items the learner wants introduced per day, and how
+// many have already been introduced today so the cap actually holds.
+
+function loadNewPerDay() {
+  const raw = localStorage.getItem(KEYS.newPerDay);
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 10;
+}
+
+function saveNewPerDay(n) {
+  localStorage.setItem(KEYS.newPerDay, String(Math.max(1, Math.round(n))));
+}
+
+function getNewIntroducedToday() {
+  const raw = localStorage.getItem(KEYS.newIntroduced);
+  if (!raw) return 0;
+  try {
+    const rec = JSON.parse(raw);
+    return rec.date === isoToday() ? rec.count : 0;
+  } catch { return 0; }
+}
+
+function bumpNewIntroduced(n) {
+  const count = getNewIntroducedToday() + n;
+  localStorage.setItem(KEYS.newIntroduced, JSON.stringify({ date: isoToday(), count }));
+}
+
 // ---- Day Progress ----
-// Session completion is permanent per curriculum day, unlike tasksDone which
-// is scoped to a calendar date. Shape: { "3": ["s1","s2"], ... }
+// Session completion is permanent per curriculum day, unlike a calendar-scoped
+// key. Shape: { "3": ["s1","s2"], ... }
 
 function loadDayProgress() {
   const raw = localStorage.getItem(KEYS.dayProgress);
@@ -196,17 +233,4 @@ function bumpReviewCount(n) {
   const today = isoToday();
   all[today] = (all[today] || 0) + (n || 1);
   localStorage.setItem(KEYS.reviewCounts, JSON.stringify(all));
-}
-
-// ---- Streak Display ----
-
-function updateStreakDisplay() {
-  const data = loadStreak();
-  const el = document.getElementById('streakNum');
-  if (el) {
-    const word = data.currentStreak === 1 ? 'day' : 'days';
-    el.innerHTML = `${data.currentStreak} <span>${word}</span>`;
-  }
-  const longest = document.getElementById('longestStreak');
-  if (longest) longest.textContent = data.longestStreak;
 }

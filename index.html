@@ -20,15 +20,15 @@
 <nav>
   <div class="nav-logo">Հայերեն <span>Eastern Armenian</span></div>
   <div class="nav-tabs">
-    <button class="tab-btn active"  onclick="showPanel('home', this)">Home</button>
-    <button class="tab-btn"         onclick="showPanel('review', this)">Review<span class="tab-badge" id="tabDueBadge"></span></button>
-    <button class="tab-btn"         onclick="showPanel('daily', this)">Program</button>
-    <button class="tab-btn"         onclick="showPanel('alphabet', this)">Alphabet</button>
-    <button class="tab-btn"         onclick="showPanel('quiz', this)">Quiz</button>
-    <button class="tab-btn"         onclick="showPanel('flashcards', this)">Flashcards</button>
-    <button class="tab-btn"         onclick="showPanel('phrases', this)">Phrases</button>
-    <button class="tab-btn"         onclick="showPanel('calendar', this)">Calendar</button>
-    <button class="tab-btn"         onclick="showPanel('resources', this)">Resources</button>
+    <button class="tab-btn active"  data-panel="home"       onclick="showPanel('home', this)">Home</button>
+    <button class="tab-btn"         data-panel="review"     onclick="showPanel('review', this)">Review<span class="tab-badge" id="tabDueBadge"></span></button>
+    <button class="tab-btn"         data-panel="daily"      onclick="showPanel('daily', this)">Program</button>
+    <button class="tab-btn"         data-panel="alphabet"   onclick="showPanel('alphabet', this)">Alphabet</button>
+    <button class="tab-btn"         data-panel="quiz"       onclick="showPanel('quiz', this)">Quiz</button>
+    <button class="tab-btn"         data-panel="flashcards" onclick="showPanel('flashcards', this)">Flashcards</button>
+    <button class="tab-btn"         data-panel="phrases"    onclick="showPanel('phrases', this)">Phrases</button>
+    <button class="tab-btn"         data-panel="calendar"   onclick="showPanel('calendar', this)">Calendar</button>
+    <button class="tab-btn"         data-panel="resources"  onclick="showPanel('resources', this)">Resources</button>
   </div>
 </nav>
 
@@ -133,7 +133,8 @@
     <div class="alpha-header">
       <div>
         <h2>The Armenian Alphabet</h2>
-        <p>Created by Mesrop Mashtots in 405 AD — 38 letters, each with a sound you can rely on.</p>
+        <p>Created by Mesrop Mashtots in 405 AD — 38 letters, each with a sound you can rely on, plus the ligature և.</p>
+        <p class="alpha-credit">Illustrations &amp; audio: <a href="https://www.armmuseum.ru/alphabet" target="_blank" rel="noopener">Armenian Museum of Moscow</a></p>
       </div>
       <img class="alpha-initial" src="images/letter-a-cutout.png" alt="An illuminated Armenian manuscript initial, a bird worked into the letterform">
     </div>
@@ -160,6 +161,11 @@
         <span class="control-label">Direction</span>
         <button class="ctrl-btn active" id="btnDirToSound" onclick="setQuizDirection('toSound')">Char → Sound</button>
         <button class="ctrl-btn"        id="btnDirToChar"  onclick="setQuizDirection('toChar')">Sound → Char</button>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Answer</span>
+        <button class="ctrl-btn active" id="btnAnsChoice" onclick="setQuizAnswerMode('choice')">Choose</button>
+        <button class="ctrl-btn"        id="btnAnsType"   onclick="setQuizAnswerMode('type')">Type it</button>
       </div>
     </div>
 
@@ -248,6 +254,8 @@
     <h2>Learning Resources</h2>
     <p>Curated tools for Eastern Armenian beginners focusing on the alphabet and reading.</p>
 
+    <p class="resources-credit">The Alphabet panel's illustrations and pronunciation audio are from the <a href="https://www.armmuseum.ru/alphabet" target="_blank" rel="noopener">Armenian Museum of Moscow</a> (Армянский музей Москвы и культуры наций) — used here with attribution, watermark intact.</p>
+
     <div class="culture-card">
       <div class="culture-art">
         <img src="images/chess-print.png" alt="Linocut print: a face, a hand and a chess queen on a board">
@@ -276,22 +284,22 @@
       <div class="resource-group-title">Apps & Tools</div>
       <div class="resource-list">
         <div class="resource-item">
-          <h4>Duolingo — Armenian</h4>
+          <h4><a href="https://www.duolingo.com/course/hy/en/Learn-Armenian" target="_blank" rel="noopener">Duolingo — Armenian ↗</a></h4>
           <p>Structured bite-sized lessons covering alphabet and basic phrases. Good for daily habit-building.</p>
           <span class="resource-tag">Free · iOS & Android</span>
         </div>
         <div class="resource-item">
-          <h4>Anki Flashcards</h4>
+          <h4><a href="https://apps.ankiweb.net/" target="_blank" rel="noopener">Anki Flashcards ↗</a></h4>
           <p>Download Armenian alphabet decks for spaced repetition. Best tool for memorizing letter shapes long-term.</p>
           <span class="resource-tag">Free · Desktop & Mobile</span>
         </div>
         <div class="resource-item">
-          <h4>Forvo.com</h4>
+          <h4><a href="https://forvo.com/languages/hy/" target="_blank" rel="noopener">Forvo.com ↗</a></h4>
           <p>Native speaker pronunciations of Armenian words. Type any word to hear how it sounds.</p>
           <span class="resource-tag">Free · Web</span>
         </div>
         <div class="resource-item">
-          <h4>Google Translate — Armenian</h4>
+          <h4><a href="https://translate.google.com/?sl=en&tl=hy" target="_blank" rel="noopener">Google Translate — Armenian ↗</a></h4>
           <p>Use the handwriting input to practice drawing letters and verify your strokes are recognizable.</p>
           <span class="resource-tag">Free · Web & App</span>
         </div>
@@ -302,17 +310,17 @@
       <div class="resource-group-title">Online Courses & Videos</div>
       <div class="resource-list">
         <div class="resource-item">
-          <h4>Armenian Virtual College (AVC)</h4>
-          <p>armeniavirtualcollege.org — Free structured beginner courses for Eastern Armenian, including alphabet lessons.</p>
+          <h4><a href="https://armeniavirtualcollege.org" target="_blank" rel="noopener">Armenian Virtual College (AVC) ↗</a></h4>
+          <p>Free structured beginner courses for Eastern Armenian, including alphabet lessons.</p>
           <span class="resource-tag">Free · Web</span>
         </div>
         <div class="resource-item">
-          <h4>YouTube: Armenian with Nare</h4>
+          <h4><a href="https://www.youtube.com/results?search_query=Armenian+with+Nare" target="_blank" rel="noopener">YouTube: Armenian with Nare ↗</a></h4>
           <p>Beginner-friendly video lessons covering pronunciation, the alphabet, and common vocabulary.</p>
           <span class="resource-tag">Free · YouTube</span>
         </div>
         <div class="resource-item">
-          <h4>Pimsleur Armenian</h4>
+          <h4><a href="https://www.pimsleur.com/learn-armenian-eastern" target="_blank" rel="noopener">Pimsleur Armenian ↗</a></h4>
           <p>Audio-only method, great for pronunciation from day one. 30 min lessons focused on speaking.</p>
           <span class="resource-tag">Paid · App</span>
         </div>
@@ -323,12 +331,12 @@
       <div class="resource-group-title">Books & References</div>
       <div class="resource-list">
         <div class="resource-item">
-          <h4>Colloquial Armenian</h4>
+          <h4><a href="https://www.google.com/search?q=Colloquial+Armenian+Dora+Sakayan" target="_blank" rel="noopener">Colloquial Armenian ↗</a></h4>
           <p>By Dora Sakayan. A structured textbook covering Eastern Armenian grammar, alphabet, and conversation.</p>
           <span class="resource-tag">Book</span>
         </div>
         <div class="resource-item">
-          <h4>Armenian-English Dictionary (Bedrossian)</h4>
+          <h4><a href="https://archive.org/search?query=Bedrossian+Armenian+dictionary" target="_blank" rel="noopener">Armenian-English Dictionary (Bedrossian) ↗</a></h4>
           <p>Classic reference dictionary, freely available online. Useful once you can read letters.</p>
           <span class="resource-tag">Free PDF · Reference</span>
         </div>

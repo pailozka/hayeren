@@ -104,19 +104,23 @@ function getDueItems() {
 }
 
 function resolveSrsItem(type, id) {
-  if (type === 'letter') return letters[Number(id)] || null;
+  if (type === 'letter') return letters.find(l => l.id === id) || null;
   if (type === 'word')   return getWord(id);
   if (type === 'phrase') return phrases.find(p => p.id === id) || null;
   return null;
 }
 
 // Items the learner has unlocked but never reviewed — the "new" pool.
+// Letters are keyed by their stable id (slug); words by their own id.
 function getNewItems(limit) {
   const all = loadSrsData();
   const out = [];
 
-  learnedLetters.forEach(idx => {
-    if (!all[srsKey('letter', idx)]) out.push({ type: 'letter', id: String(idx), item: letters[idx] });
+  learnedLetters.forEach(id => {
+    if (!all[srsKey('letter', id)]) {
+      const item = letters.find(l => l.id === id);
+      if (item) out.push({ type: 'letter', id, item });
+    }
   });
   vocabulary.forEach(w => {
     if (!all[srsKey('word', w.id)]) out.push({ type: 'word', id: w.id, item: w });

@@ -6,6 +6,7 @@ let fcImageMode = false; // words only: picture + Armenian on the front, no Engl
 let fcItems     = [];
 let fcIndex     = 0;
 let fcFlipped   = false;
+let fcLetterUpTo = null; // scopes the letters deck to letters[0..upTo) — set by a Daily drill handoff
 
 function initFlashcards() {
   buildFCCategoryControls();
@@ -23,6 +24,14 @@ function setFCDeck(deck) {
   if (imgToggle) imgToggle.style.display = deck === 'words' ? 'inline-flex' : 'none';
 
   if (deck === 'letters') fcCategory = 'all';
+  else fcLetterUpTo = null; // scope only applies to the letters deck
+  loadFCDeck();
+}
+
+// Restricts the letters deck to letters[0..upTo) — used by a Daily drill
+// hand-off so "Open Flashcards" on Day 1 only shows the letters taught so far.
+function setFCLetterScope(upTo) {
+  fcLetterUpTo = typeof upTo === 'number' ? upTo : null;
   loadFCDeck();
 }
 
@@ -82,7 +91,8 @@ function ensureFlashcardDom() {
 function loadFCDeck() {
   ensureFlashcardDom();
   if (fcDeck === 'letters') {
-    fcItems = [...letters].sort(() => Math.random() - 0.5);
+    const pool = typeof fcLetterUpTo === 'number' ? letters.slice(0, fcLetterUpTo) : letters;
+    fcItems = [...pool].sort(() => Math.random() - 0.5);
   } else {
     let pool = fcCategory === 'all'
       ? vocabulary
@@ -189,15 +199,13 @@ function flipCard() {
   if (rating) rating.style.display = 'flex';
 
   recordActivity();
-  updateStreakDisplay();
-  buildWeekDots();
 }
 
 function rateCard(rating) {
   const item = fcItems[fcIndex];
   if (item) {
     const type = fcDeck === 'letters' ? 'letter' : 'word';
-    const id = fcDeck === 'letters' ? letters.indexOf(item) : item.id;
+    const id = item.id;
     const rec = reviewItem(type, id, rating);
     bumpReviewCount(1);
     showNextReviewHint(rec);

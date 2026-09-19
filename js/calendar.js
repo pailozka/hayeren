@@ -92,12 +92,13 @@ function renderMonthGrid() {
   host.innerHTML = html;
 }
 
-function renderYearHeatmap() {
-  const host = document.getElementById('calYearMap');
+// Shared by the Calendar panel's year map and the Home dashboard's heatmap —
+// both show the same 52-week grid, just mounted into different elements.
+function render52WeekHeatmap(hostId) {
+  const host = document.getElementById(hostId);
   if (!host) return;
 
-  const streak = loadStreak();
-  const activeSet = new Set(streak.activeDates);
+  const activeSet = new Set(loadStreak().activeDates);
   const counts = loadReviewCounts();
   const todayIso = isoToday();
 
@@ -105,11 +106,10 @@ function renderYearHeatmap() {
   const today = new Date();
   const end = new Date(today);
   end.setDate(end.getDate() + (7 - ((today.getDay() + 6) % 7) - 1));
-  const start = new Date(end);
-  start.setDate(start.getDate() - (52 * 7 - 1));
+  const cursor = new Date(end);
+  cursor.setDate(cursor.getDate() - (52 * 7 - 1));
 
   let html = '';
-  const cursor = new Date(start);
   for (let w = 0; w < 52; w++) {
     html += '<div class="hm-week">';
     for (let d = 0; d < 7; d++) {
@@ -127,4 +127,8 @@ function renderYearHeatmap() {
   }
 
   host.innerHTML = html;
+}
+
+function renderYearHeatmap() {
+  render52WeekHeatmap('calYearMap');
 }
