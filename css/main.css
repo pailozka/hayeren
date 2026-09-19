@@ -1371,6 +1371,7 @@ h1, h2, h3, h4 {
 }
 
 .card-audio-btn:hover, .card-audio-btn.playing { opacity: 1; border-color: var(--coral); background: var(--rose-wash); }
+.card-audio-btn.audio-error { opacity: 1; border-color: var(--rubric); }
 
 .detail-audio-btn {
   display: inline-flex;
@@ -1384,6 +1385,7 @@ h1, h2, h3, h4 {
 }
 
 .detail-audio-btn:hover, .detail-audio-btn.playing { border-color: var(--coral); background: var(--rose-wash); color: var(--coral); }
+.detail-audio-btn.audio-error { border-color: var(--rubric); color: var(--rubric); }
 
 .letter-detail {
   display: none;
