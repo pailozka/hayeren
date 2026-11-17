@@ -5,7 +5,11 @@ let _phrasebookInited = false;
 let _dailyInited = false;
 let _calendarInited = false;
 
-const PANEL_NAMES = ['home', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
+const PANEL_NAMES = ['home', 'lesson', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
+
+const panelScrollPositions = {};
+let currentPanel = 'home';
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 const prefersReducedMotion = window.matchMedia
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -15,20 +19,29 @@ const prefersReducedMotion = window.matchMedia
 // and shouldn't be rewritten, only read.
 function showPanel(name, btnEl, fromHash) {
   if (!PANEL_NAMES.includes(name)) name = 'home';
+  panelScrollPositions[currentPanel] = window.scrollY;
+  const changingPanel = currentPanel !== name;
+  currentPanel = name;
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.removeAttribute('aria-current');
+  });
   document.getElementById('panel-' + name).classList.add('active');
   const tab = btnEl || document.querySelector(`.tab-btn[data-panel="${name}"]`);
   if (tab) {
     tab.classList.add('active');
-    tab.scrollIntoView({ block: 'nearest', inline: 'center' });
+    tab.setAttribute('aria-current', 'page');
+    const strip = tab.parentElement;
+    strip.scrollTo({ left: tab.offsetLeft - strip.offsetLeft - (strip.clientWidth - tab.clientWidth) / 2, behavior: 'auto' });
   }
-  window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+
 
   if (!fromHash && location.hash.slice(1) !== name) {
     history.pushState(null, '', '#' + name);
   }
 
+  if (name === 'lesson') renderLesson();
   if (name === 'home') {
     initDashboard();
   }
@@ -50,6 +63,10 @@ function showPanel(name, btnEl, fromHash) {
   if (name === 'calendar') {
     if (!_calendarInited) { _calendarInited = true; initCalendar(); }
     else renderCalendar();
+  }
+  if (changingPanel) {
+    window.scrollTo({ top: panelScrollPositions[name] || 0, behavior: 'instant' });
+    document.getElementById('mainContent').focus({ preventScroll: true });
   }
 }
 
@@ -75,6 +92,7 @@ function isTypingTarget(el) {
 
 document.addEventListener('keydown', (e) => {
   if (isTypingTarget(e.target)) return;
+  if (e.target.closest('button, a, summary, [role=button]') && [' ', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
 
   const activePanel = document.querySelector('.panel.active');

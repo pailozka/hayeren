@@ -56,6 +56,9 @@ function switchDay(n) {
 
   renderDaySessions(day);
   buildDaySelector();
+  if (document.getElementById('panel-daily').classList.contains('active')) {
+    document.getElementById('dayHeading').scrollIntoView({block: 'start', behavior: 'instant'});
+  }
 }
 
 function renderDaySessions(day) {
@@ -71,18 +74,18 @@ function renderDaySessions(day) {
     block.id = `sb-${day.day}-${key}`;
 
     block.innerHTML = `
-      <div class="session-header">
-        <div class="session-header-left">
-          <div class="session-tag">${session.tag}</div>
-          <div class="session-meta">${session.when} · ${session.min} min</div>
-          <div class="session-title-main">${session.title}</div>
-        </div>
-        <div class="session-header-right">
-          <div class="session-done-badge${done ? ' visible' : ''}">✓ Done</div>
-          <div class="session-chevron${i === 0 ? ' open' : ''}">▼</div>
-        </div>
-      </div>
-      <div class="session-body${i === 0 ? ' open' : ''}">
+      <button type="button" class="session-header" aria-expanded="${i === 0}" aria-controls="body-${day.day}-${key}">
+        <span class="session-header-left">
+          <span class="session-tag">${session.tag}</span>
+          <span class="session-meta">${session.when} · ${session.min} min</span>
+          <span class="session-title-main">${session.title}</span>
+        </span>
+        <span class="session-header-right">
+          <span class="session-done-badge${done ? ' visible' : ''}">✓ Done</span>
+          <span class="session-chevron${i === 0 ? ' open' : ''}">▼</span>
+        </span>
+      </button>
+      <div id="body-${day.day}-${key}" class="session-body${i === 0 ? ' open' : ''}">
         <div class="session-body-inner">
           ${renderSessionContent(session)}
           <button class="complete-btn" ${done ? 'disabled' : ''}>
@@ -94,7 +97,10 @@ function renderDaySessions(day) {
 
     block.querySelector('.session-header').onclick = () => {
       toggleSessionBody(block.querySelector('.session-body'));
-      block.querySelector('.session-chevron').classList.toggle('open');
+      const open = block.querySelector('.session-body').classList.contains('open');
+      block.querySelector('.session-header').setAttribute('aria-expanded', String(open));
+      block.querySelector('.session-body').inert = !open;
+      block.querySelector('.session-chevron').classList.toggle('open', open);
     };
 
     const btn = block.querySelector('.complete-btn');
@@ -106,37 +112,18 @@ function renderDaySessions(day) {
     // max-height straight to 'none' rather than a measured pixel value that
     // would clip any later in-panel expansion (a revealed recall answer, etc).
     const body = block.querySelector('.session-body');
+    body.inert = !body.classList.contains('open');
     if (body.classList.contains('open')) body.style.maxHeight = 'none';
   });
 }
 
-// Animates to the panel's real measured height instead of an arbitrary large
-// max-height — that hack makes ease-timed open/close look like a snap
-// followed by a long invisible tail, since most of the eased curve plays out
-// far past the content's actual height.
-//
-// Once fully open, max-height is released to 'none' so content that expands
-// later — a revealed recall answer, a reading-line translation — isn't
-// clipped by a height measured before that expansion happened.
+// Keep expanded sections at natural height, including with reduced motion.
 function toggleSessionBody(body) {
   const opening = !body.classList.contains('open');
-  if (opening) {
-    body.classList.add('open');
-    body.style.maxHeight = body.scrollHeight + 'px';
-    body.addEventListener('transitionend', function release(e) {
-      if (e.propertyName !== 'max-height') return;
-      body.removeEventListener('transitionend', release);
-      if (body.classList.contains('open')) body.style.maxHeight = 'none';
-    });
-  } else {
-    // 'none' can't be animated from directly — pin to the current rendered
-    // height first, then collapse from that fixed value on the next frame.
-    body.style.maxHeight = body.scrollHeight + 'px';
-    requestAnimationFrame(() => {
-      body.style.maxHeight = '0px';
-      body.classList.remove('open');
-    });
-  }
+  body.classList.toggle('open', opening);
+  // Natural height stays correct when answers expand, fonts load or the
+  // viewport changes. No delayed callbacks can race rapid toggles.
+  body.style.maxHeight = opening ? 'none' : '0px';
 }
 
 function completeSession(dayNum, key, btn, session) {
@@ -218,7 +205,7 @@ function renderRecallSession(s) {
     <p class="session-intro">Cover the answers. Work through each prompt out loud before revealing.</p>
     <div class="recall-list">
       ${s.items.map(it => `
-        <div class="recall-item" onclick="this.classList.toggle('revealed')">
+        <div class="recall-item" role="button" tabindex="0" aria-expanded="false" onclick="toggleStudyAnswer(this)" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
           <div class="recall-q">${it.q}</div>
           <div class="recall-ans">${it.a}</div>
         </div>`).join('')}
@@ -288,7 +275,7 @@ function renderReadingSession(s) {
     <p class="session-intro">Read each line aloud twice: once slowly, decoding each letter, then once at speaking pace. Only check the English after you have attempted it.</p>
     <div class="reading-lines">
       ${s.lines.map(l => `
-        <div class="reading-line" onclick="this.classList.toggle('revealed')">
+        <div class="reading-line" role="button" tabindex="0" aria-expanded="false" onclick="toggleStudyAnswer(this)" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
           <div class="rl-arm">${l.arm}</div>
           <div class="rl-rom">${l.rom}</div>
           <div class="rl-eng">${l.eng}</div>
@@ -346,4 +333,8 @@ function initDaily() {
   activeDay = getCurrentDay();
   buildDaySelector();
   switchDay(activeDay);
+}
+
+function toggleStudyAnswer(el) {
+  el.setAttribute('aria-expanded', String(el.classList.toggle('revealed')));
 }

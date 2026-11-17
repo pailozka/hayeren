@@ -3,6 +3,7 @@
 // honest ways in — not to push you into Day 1.
 
 function initDashboard() {
+  renderLessonLaunch();
   renderDashGreeting();
   renderDashPrimary();
   renderDashFigures();

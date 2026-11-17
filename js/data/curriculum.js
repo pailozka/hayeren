@@ -2,10 +2,9 @@
 // The guided Daily program, as data. daily.js renders these — nothing is
 // hardcoded in index.html, so adding a day means adding an object here.
 //
-// Letter progression follows the standard textbook ordering used in
-// Sakayan's "Eastern Armenian for the English-Speaking World" and the
-// Peace Corps Armenian course: alphabetical order, grouped 4-6 per day,
-// with a consolidation day closing each block.
+// This app uses an alphabetical progression, grouped 4-6 letters per day,
+// with a consolidation day closing each block. It is not Sakayan's
+// writing sequence; the book groups letters differently.
 //
 // Session `kind` drives which exercise renderer runs:
 //   'letters'   - letter introduction cards (needs letterIdx)

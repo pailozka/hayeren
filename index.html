@@ -17,7 +17,8 @@
 </head>
 <body>
 
-<nav>
+<a class="skip-link" href="#mainContent">Skip to learning content</a>
+<nav class="app-nav" aria-label="Main navigation">
   <div class="nav-logo">Հայերեն <span>Eastern Armenian</span></div>
   <div class="nav-tabs">
     <button class="tab-btn active"  data-panel="home"       onclick="showPanel('home', this)">Home</button>
@@ -32,6 +33,7 @@
   </div>
 </nav>
 
+<main id="mainContent" tabindex="-1">
 <!-- ====== HOME / DASHBOARD ====== -->
 <div id="panel-home" class="panel active">
   <div class="carpet-band" role="presentation"></div>
@@ -40,6 +42,8 @@
       <h1 id="dashGreeting">Բարի՛ <em>լույս</em></h1>
       <p id="dashLine">Pick up where you left off, clear your review queue, or wander wherever you like.</p>
     </header>
+
+    <section id="lessonLaunch" class="lesson-launch" aria-label="Guided lesson"></section>
 
     <section class="dash-primary" id="dashPrimary"></section>
 
@@ -66,6 +70,8 @@
     </section>
   </div>
 </div>
+
+<section id="panel-lesson" class="panel"><div class="lesson-shell" id="lessonHost"></div></section>
 
 <!-- ====== REVIEW PANEL ====== -->
 <div id="panel-review" class="panel">
@@ -344,11 +350,12 @@
     </div>
 
     <div class="tip-box">
-      <p><strong>Tip:</strong> The Armenian alphabet is phonetic — once you know the letters, you can read anything. Invest your first 2 weeks entirely in alphabet mastery before worrying about grammar or vocabulary. Handwriting each letter (not just typing) dramatically improves retention.</p>
+      <p><strong>Study alongside Sakayan:</strong> Use short lessons for a daily habit and the Program for deeper practice. Start useful words and exchanges while learning the script. In <em>Eastern Armenian for the English-speaking World</em> (2007), the preface (pp. xv–xvi) combines communication, grammar, pronunciation and writing; Unit 1 (pp. 2–5) begins with personal information. Our short lessons are original practice using the app’s vocabulary, not a chapter-by-chapter version of the book.</p>
     </div>
   </div>
 </div>
 
+</main>
 <!-- Data (no dependencies) -->
 <script src="js/data/letters.js"></script>
 <script src="js/data/vocabulary.js"></script>
@@ -369,6 +376,7 @@
 <script src="js/review.js"></script>
 <script src="js/calendar.js"></script>
 <script src="js/dashboard.js"></script>
+<script src="js/lesson.js"></script>
 <!-- Entry point -->
 <script src="js/app.js"></script>
 </body>

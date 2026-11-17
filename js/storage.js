@@ -25,13 +25,18 @@ const LEGACY_LETTER_ORDER = [
 
 // ---- Helpers ----
 
+function localDateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function isoToday() {
-  return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  return localDateKey(new Date());
 }
 
 function isoYesterday() {
-  const d = new Date(Date.now() - 86400000);
-  return d.toISOString().slice(0, 10);
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return localDateKey(d);
 }
 
 // ---- Schema migration ----
