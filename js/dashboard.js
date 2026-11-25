@@ -6,6 +6,7 @@ function initDashboard() {
   renderLessonLaunch();
   renderDashGreeting();
   renderDashPrimary();
+  renderRug();
   renderDashFigures();
   renderDashBlocks();
   updateDueBadge();
@@ -22,7 +23,7 @@ function renderDashGreeting() {
   const el = document.getElementById('dashGreeting');
   if (el) el.innerHTML = greeting.arm;
   const line = document.getElementById('dashLine');
-  if (line) line.textContent = greeting.english + ' · Eastern Armenian';
+  if (line) line.textContent = greeting.english + ' in Eastern Armenian';
 }
 
 function renderDashPrimary() {
@@ -41,9 +42,13 @@ function renderDashPrimary() {
       <span class="study-arrow" aria-hidden="true">→</span>
     </a>
     <button class="study-link" onclick="goDay(${resumeDay})">
-      <span><span class="study-title">Day ${resumeDay} · ${day.title}</span><span class="study-note">${done} of ${total} sessions complete</span></span>
+      <span><span class="study-title">Day ${resumeDay}: ${day.title}</span><span class="study-note">${done} of ${total} sessions complete</span></span>
       <span class="study-arrow" aria-hidden="true">→</span>
     </button>
+    <a class="study-link" href="#play">
+      <span><span class="study-title">Play a game</span><span class="study-note">Pairs, word building and listening</span></span>
+      <span class="study-arrow" aria-hidden="true">→</span>
+    </a>
     <a class="study-link" href="#dialogue">
       <span><span class="study-title">Practice a conversation</span><span class="study-note">Build replies in Armenian</span></span>
       <span class="study-arrow" aria-hidden="true">→</span>
@@ -60,7 +65,7 @@ function renderDashFigures() {
   const totalReviews = Object.values(counts).reduce((a, b) => a + b, 0);
 
   const figures = [
-    { n: streak.currentStreak, label: 'day streak' },
+    { n: getCurrentStreak(), label: 'day streak' },
     { n: streak.longestStreak, label: 'longest streak' },
     { n: stats.mature, label: 'items known well' },
     { n: stats.learning, label: 'still learning' },
@@ -106,6 +111,7 @@ function renderDashJump() {
   const host = document.getElementById('dashJump');
   if (!host) return;
   const jumps = [
+    { panel: 'play', title: 'Games', note: 'Find pairs, build words and catch letters by ear.' },
     { panel: 'dialogue', title: 'Conversations', note: 'Build replies for everyday situations.' },
     { panel: 'alphabet',   title: 'The alphabet',  note: `All ${letters.length} letters, with sound, notes and example words.` },
     { panel: 'quiz',       title: 'Quiz',          note: 'Multiple choice, letters or vocabulary, both directions.' },

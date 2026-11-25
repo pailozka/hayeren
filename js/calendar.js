@@ -41,7 +41,7 @@ function renderCalendarSummary() {
   const stats = getSrsStats();
 
   host.innerHTML = `
-    <div class="cal-stat"><span class="cal-stat-num">${streak.currentStreak}</span><span class="cal-stat-label">current streak</span></div>
+    <div class="cal-stat"><span class="cal-stat-num">${getCurrentStreak()}</span><span class="cal-stat-label">current streak</span></div>
     <div class="cal-stat"><span class="cal-stat-num">${streak.longestStreak}</span><span class="cal-stat-label">longest streak</span></div>
     <div class="cal-stat"><span class="cal-stat-num">${streak.activeDates.length}</span><span class="cal-stat-label">days studied</span></div>
     <div class="cal-stat"><span class="cal-stat-num">${totalReviews}</span><span class="cal-stat-label">total reviews</span></div>
@@ -113,7 +113,7 @@ function render52WeekHeatmap(hostId) {
   for (let w = 0; w < 52; w++) {
     html += '<div class="hm-week">';
     for (let d = 0; d < 7; d++) {
-      const iso = cursor.toISOString().slice(0, 10);
+      const iso = localDateKey(cursor);
       const count = counts[iso] || 0;
       const level = intensityFor(count, activeSet.has(iso));
       const future = iso > todayIso;

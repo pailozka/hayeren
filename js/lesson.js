@@ -13,6 +13,20 @@ function lessonItems(unit) {
   return [0,1,2].map(i => ({ type: 'letter', ...letters[(start + i) % letters.length] }))
     .concat([0,1,2].map(i => ({ type: 'word', ...words[(Math.floor(unit / lessonTopics.length) * 3 + i) % words.length] })));
 }
+let lessonFreshKnots = 0;
+// Bold the letter being taught inside an example word.
+function markLetter(word, letter) {
+  return word.split(new RegExp(`(${letter.arm}|${letter.lower})${letter.id === 'vo' ? '(?!ւ)' : ''}`)).map(part =>
+    part === letter.arm || part === letter.lower ? `<mark>${part}</mark>` : lessonEscape(part)).join('');
+}
+// Explain what the learner actually picked, so a wrong answer teaches both items.
+function lessonMixup(picked) {
+  const item = lessonItems(lessonState.unit)[lessonState.queue[lessonState.index].item];
+  const reverse = lessonState.queue[lessonState.index].reverse;
+  const pool = item.type === 'letter' ? letters.map(l => ({type:'letter', ...l})) : vocabulary.map(w => ({type:'word', ...w}));
+  const other = pool.find(i => lessonAnswer(i, reverse) === picked);
+  return other ? ` “${picked}” is ${lessonAnswer(other, !reverse)}.` : '';
+}
 function saveLesson() { localStorage.setItem(LESSON_KEY, JSON.stringify(lessonState)); }
 function renderLessonLaunch() {
   const resume = lessonState && !lessonState.finished;
@@ -22,9 +36,9 @@ function renderLessonLaunch() {
   const step = resume ? (lessonState.phase === 'learn' ? lessonState.index : 6 + lessonState.index) : 0;
   document.getElementById('lessonLaunch').innerHTML = `
     <div class="lesson-launch-copy">
-      <p class="lesson-eyebrow">Lesson ${unit + 1} · 5–8 min</p>
+      <p class="lesson-eyebrow">Lesson ${unit + 1}, about 5 minutes</p>
       <h2>${topicName} &amp; the alphabet</h2>
-      <p>${resume ? 'Pick up where you left off.' : 'Meet three letters and three words, then try to recall them.'}</p>
+      <p>${resume ? 'Pick up where you left off.' : 'Meet three letters and three words, play a quick match, then recall them.'}</p>
       ${resume ? `<progress class="lesson-launch-progress" max="${6 + lessonState.queue.length}" value="${step}" aria-label="Current lesson progress"></progress>` : ''}
       <button class="lesson-primary" onclick="startLesson()">${resume ? 'Continue lesson' : 'Start a short lesson'} <span aria-hidden="true">→</span></button>
     </div>
@@ -44,41 +58,54 @@ function startLesson() {
 function lessonAnswer(item, reverse) { return reverse ? item.arm : item.type === 'letter' ? item.sound : item.eng; }
 function renderLesson() {
   const host = document.getElementById('lessonHost');
-  if (!lessonState) { host.innerHTML = '<h1>Your first short lesson</h1><p>Learn three letters and three everyday words, then put them into practice.</p><button class="lesson-primary" onclick="startLesson()">Begin →</button>'; return; }
+  if (!lessonState) { host.innerHTML = '<h1>Your first short lesson</h1><p>Learn three letters and three everyday words, then put them into practice.</p><button class="lesson-primary" onclick="startLesson()">Begin</button>'; return; }
   const state = lessonState;
   const items = lessonItems(state.unit);
   const learning = state.phase === 'learn';
   const task = state.queue[state.index];
   const item = learning ? items[state.index] : task ? items[task.item] : null;
   const step = learning ? state.index : 6 + state.index;
-  host.innerHTML = `<div class="lesson-toolbar"><button class="ctrl-btn" onclick="showPanel('home')">← Save &amp; leave</button><span>Lesson ${state.unit + 1} · ${lessonTopics[state.unit % lessonTopics.length]}</span></div>
+  host.innerHTML = `<div class="lesson-toolbar"><button class="ctrl-btn" onclick="showPanel('home')">← Save &amp; leave</button><span>Lesson ${state.unit + 1}: ${lessonTopics[state.unit % lessonTopics.length]}</span></div>
     <progress class="lesson-progress" max="${6 + state.queue.length}" value="${state.finished ? 6 + state.queue.length : step + Number(state.answered !== null)}" aria-label="Lesson progress"></progress>
     <div id="lessonStage" class="lesson-stage" tabindex="-1"></div>`;
   const stage = document.getElementById('lessonStage');
+  if (state.match) {
+    const group = items.slice(state.index - 3, state.index);
+    stage.innerHTML = `<h1>Find the pairs</h1><p>Match what you just met. Wrong guesses are free here.</p><div id="lessonMatch"></div>`;
+    renderLessonActions(host, 'Continue');
+    const next = document.getElementById('lessonContinue');
+    next.disabled = true;
+    mountMatch(document.getElementById('lessonMatch'), group, () => { next.disabled = false; next.focus(); });
+    return;
+  }
   if (state.finished) {
-    stage.innerHTML = `<h1>Lesson complete</h1><p>You practiced ${items.length} items in both directions${state.mistakes.length ? ' and worked through the tricky ones' : ''}. They’ll be ready for review when due.</p><div class="lesson-summary">${items.map(i => `<span lang="hy">${i.arm}</span>`).join('')}</div><div class="lesson-summary-actions"><button class="lesson-primary" onclick="startLesson()">Another lesson →</button> <button class="ctrl-btn" onclick="showPanel('home')">Back to Home</button></div>`;
+    stage.innerHTML = `<h1>Lesson complete</h1><p>You practiced ${items.length} items in both directions${state.mistakes.length ? ' and worked through the tricky ones' : ''}. They’re tied into your rug and will come back for review.</p>${rugMarkup(lessonFreshKnots)}<div class="lesson-summary">${items.map(i => `<span lang="hy">${i.arm}</span>`).join('')}</div><div class="lesson-summary-actions"><button class="lesson-primary" onclick="startLesson()">Another lesson</button> <button class="ctrl-btn" onclick="showPanel('home')">Back to Home</button></div>`;
     return;
   }
   if (learning) {
-    stage.innerHTML = `<p class="lesson-eyebrow">Meet ${state.index + 1} of 6 · ${item.type === 'letter' ? 'Letter & sound' : 'Useful word'}</p>
+    stage.innerHTML = `<div class="meet-card"><div>
+      <p class="lesson-eyebrow">${item.type === 'letter' ? 'New letter' : 'New word'}, ${state.index + 1} of 6</p>
       <h1 class="lesson-glyph" lang="hy">${item.arm}${item.lower ? ' <small>' + item.lower + '</small>' : ''}</h1>
-      <h2>${lessonEscape(item.type === 'letter' ? item.name + ' · ' + item.sound : item.eng)}</h2>
+      <h2>${lessonEscape(item.type === 'letter' ? `${item.name}, sounds like “${item.sound}”` : item.eng)}</h2>
       <p class="lesson-romanization">${lessonEscape(item.romanized || item.ipa)}</p>
       <p>${lessonEscape(item.desc || 'Say the word aloud, then look away and try to remember it.')}</p>
-      ${item.audio ? '<button class="ctrl-btn" id="lessonAudio">▶ Hear the letter name</button>' : ''}
-      `;
-    renderLessonActions(host, state.index === 5 ? 'Start practice' : 'Continue');
+      ${item.audio ? '<button class="ctrl-btn" id="lessonAudio">Hear the letter name</button>' : ''}</div>
+      ${item.img ? `<img class="meet-art" src="${item.img}" alt="${item.name} drawn as a decorated Armenian bird letter">` : vocabIconSvg(item.id)}</div>
+      ${item.type === 'letter' && item.words ? `<p class="meet-words">Find it in ${item.words.slice(0, 2).map(w => `<span><b lang="hy">${markLetter(w.arm, item)}</b> ${lessonEscape(w.eng)}</span>`).join(' ')}</p>` : ''}`;
+    renderLessonActions(host, state.index % 3 === 2 ? 'Play a quick match' : 'Continue');
     if (item.audio) document.getElementById('lessonAudio').onclick = e => playLetterAudio(item, e.currentTarget);
   } else {
     const answer = lessonAnswer(item, task.reverse);
     const pool = item.type === 'letter' ? letters.map(l => ({type:'letter', ...l})) : vocabulary.map(w => ({type:'word', ...w}));
-    const distractors = [...new Set(pool.map(i => lessonAnswer(i, task.reverse)))].filter(a => a !== answer);
-    // Keep choices stable when resuming or showing feedback.
+    // Wrong answers come from this lesson first, then the same topic, so the
+    // choice tests the new material. Stable when resuming or showing feedback.
+    const mates = items.filter(i => i.type === item.type && i.id !== item.id).map(i => lessonAnswer(i, task.reverse));
+    const distractors = [...new Set(pool.filter(i => i.category === item.category).map(i => lessonAnswer(i, task.reverse)))].filter(a => a !== answer && !mates.includes(a));
     const offset = (state.unit * 7 + state.index * 3) % distractors.length;
-    const options = [answer, ...[0,1,2].map(i => distractors[(offset + i) % distractors.length])];
+    const options = [answer, ...mates.slice(0, 2), distractors[offset]];
     const rotation = (state.index + state.unit) % 4;
     options.push(...options.splice(0, rotation));
-    stage.innerHTML = `<p class="lesson-eyebrow">${state.index >= 12 ? 'Retry' : `Recall · ${state.index + 1} of 12`}</p>
+    stage.innerHTML = `<p class="lesson-eyebrow">${state.index >= 12 ? 'One more try' : `Recall ${state.index + 1} of 12`}</p>
       <h1>${task.reverse ? 'Choose the Armenian' : item.type === 'letter' ? 'Which sound?' : 'What does this mean?'}</h1>
       <div class="lesson-question" ${task.reverse ? '' : 'lang="hy"'}>${lessonEscape(task.reverse ? lessonAnswer(item, false) : item.arm)}</div>
       <div class="lesson-options">${options.map((option, index) => `<button class="lesson-option" data-option="${index}" ${task.reverse ? 'lang="hy"' : ''}>${lessonEscape(option)}</button>`).join('')}</div>`;
@@ -93,7 +120,7 @@ function renderLesson() {
 function renderLessonActions(host, label, checking = false) {
   host.insertAdjacentHTML('beforeend', `<div class="guided-lesson-actions">
     ${checking ? '<p id="lessonFeedback" class="lesson-feedback" role="status" aria-atomic="true"></p>' : ''}
-    <button id="lessonContinue" class="lesson-primary" onclick="advanceLesson()" ${checking ? 'disabled' : ''}>${label} →</button>
+    <button id="lessonContinue" class="lesson-primary" onclick="advanceLesson()" ${checking ? 'disabled' : ''}>${label}</button>
   </div>`);
 }
 
@@ -106,10 +133,10 @@ function showLessonFeedback(correctAnswer) {
   });
   const feedback = document.getElementById('lessonFeedback');
   feedback.classList.add(correct ? 'correct' : 'incorrect');
-  feedback.textContent = correct ? '✓ Correct' : `Correct answer: ${correctAnswer}. You’ll try again.`;
+  feedback.textContent = correct ? '✓ Correct' : `Correct answer: ${correctAnswer}.${lessonMixup(lessonState.answered)} You’ll try again.`;
   const next = document.getElementById('lessonContinue');
   next.disabled = false;
-  next.textContent = lessonState.index === lessonState.queue.length - 1 ? 'Finish lesson →' : 'Continue →';
+  next.textContent = lessonState.index === lessonState.queue.length - 1 ? 'Finish lesson' : 'Continue';
 }
 
 function answerLesson(answer, correctAnswer) {
@@ -129,13 +156,24 @@ function answerLesson(answer, correctAnswer) {
 }
 function advanceLesson() {
   if (!lessonState || lessonState.finished || (lessonState.phase === 'practice' && lessonState.answered === null)) return;
+  if (lessonState.match) {
+    lessonState.match = false;
+    if (lessonState.index === 6) { lessonState.phase = 'practice'; lessonState.index = 0; }
+    saveLesson();
+    renderLesson();
+    document.getElementById('lessonStage').focus({preventScroll:true});
+    document.getElementById('lessonHost').scrollIntoView({block:'start', behavior:'instant'});
+    return;
+  }
   lessonState.index++;
-  if (lessonState.phase === 'learn' && lessonState.index === 6) {
-    lessonState.phase = 'practice'; lessonState.index = 0;
+  if (lessonState.phase === 'learn') {
+    lessonState.match = lessonState.index % 3 === 0;
   } else if (lessonState.phase === 'practice' && lessonState.index >= lessonState.queue.length) {
     lessonState.finished = true;
+    const knotsBefore = rugKnots().length;
     lessonItems(lessonState.unit).forEach((item,i) => reviewItem(item.type, item.id, lessonState.mistakes.includes(i) ? 'hard' : 'good'));
     bumpReviewCount(lessonItems(lessonState.unit).length);
+    lessonFreshKnots = rugKnots().length - knotsBefore;
     recordActivity();
     updateDueBadge();
   }

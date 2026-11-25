@@ -915,6 +915,7 @@ h1, h2, h3, h4 {
   color: var(--ink-mid);
   transition: max-height 0.3s, opacity 0.3s, margin 0.3s;
 }
+.recall-ans[hidden], .rl-eng[hidden] { display: none; }
 
 .recall-item.revealed .recall-ans { max-height: 140px; opacity: 1; margin-top: 0.35rem; }
 
@@ -2006,6 +2007,7 @@ main:focus { outline: none; }
   .tab-btn .tab-badge { position: absolute; top: 0; right: 0; margin: 0; }
   html { scroll-padding-top: 12px; scroll-padding-bottom: calc(var(--mobile-nav-height, 62px) + 12px); scrollbar-gutter: auto; }
   main { padding-bottom: var(--mobile-nav-height, 62px); }
+  main { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
   .dash-primary { grid-template-columns: minmax(0, 1fr); }
   .dash { padding-top: 1.2rem; }
   .lesson-launch { grid-template-columns: minmax(0, 1fr) min(24vw, 110px); gap: .35rem; }
@@ -2049,6 +2051,7 @@ main:focus { outline: none; }
     position: sticky;
     bottom: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: .45rem;
     margin: auto -1rem 0;
     padding: .75rem 1rem max(.75rem, env(safe-area-inset-bottom));
@@ -2080,3 +2083,85 @@ main:focus { outline: none; }
 #reviewLetterAudio { margin-top: .55rem; }
 #reviewLetterAudio.playing { border-color: var(--apricot); background: var(--apricot-wash); }
 .review-audio-status { color: var(--apricot-deep); font-size: .85rem; }
+
+/* ======= RUG, GAMES, PLAYFUL LESSONS =======
+   Pressable pieces share one look: a felted tile with a thick lower edge
+   that sinks when pressed. */
+.dash-primary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 980px) { .dash-primary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .dash-primary { grid-template-columns: minmax(0, 1fr); } }
+
+.dash-rug { margin-bottom: 1.5rem; }
+.dash-rug h2 { font-family: var(--serif-display); font-size: 1.6rem; line-height: 1.2; margin-bottom: .6rem; }
+.rug { display: block; width: 100%; height: auto; overflow: visible; }
+.rug .warp, .rug .fringe { fill: none; stroke: var(--border-firm); stroke-width: 1; }
+.rug .fringe { stroke: var(--ochre); }
+.rug .knot.due { fill-opacity: .4; }
+.rug .knot.fresh { transform-box: fill-box; transform-origin: center; animation: tie-knot .5s backwards cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes tie-knot { from { transform: scale(0) rotate(-45deg); } }
+.rug-caption { margin-top: .5rem; font-style: italic; }
+
+.lesson-primary, .lesson-option, .match-tile, .spell-tile, .game-card { transition: transform .08s, box-shadow .08s; }
+#panel-lesson .lesson-primary, #panel-play .lesson-primary, .lesson-launch .lesson-primary { border-radius: 10px; box-shadow: 0 4px 0 #4d0c0a; }
+.lesson-launch .lesson-primary { box-shadow: 0 4px 0 var(--border-firm); }
+#panel-lesson .lesson-primary:disabled { box-shadow: none; }
+.lesson-option, .match-tile, .spell-tile { border-radius: 10px; box-shadow: 0 4px 0 var(--border-firm); }
+#panel-lesson .lesson-primary:active:enabled, #panel-play .lesson-primary:active, .lesson-launch .lesson-primary:active,
+.lesson-option:active:enabled, .match-tile:active:enabled, .spell-tile:active:enabled, .game-card:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--border-firm); }
+.lesson-option.correct { box-shadow: 0 4px 0 var(--leaf); animation: settle .35s; }
+.lesson-option.incorrect, .match-tile.wrong, .spell-tile.wrong { animation: nudge .3s; }
+@keyframes settle { 40% { transform: scale(1.05); } }
+@keyframes nudge { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+.meet-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 220px); gap: 1rem; align-items: center; }
+.meet-card:not(:has(> img, > svg)) { grid-template-columns: minmax(0, 1fr); }
+.meet-art { width: 100%; max-height: 230px; object-fit: contain; mix-blend-mode: multiply; }
+.word-picture { width: 100%; max-width: 120px; color: var(--indigo); }
+.meet-words { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; margin-top: 1rem; }
+.meet-words b { font-size: 1.2rem; font-weight: 500; }
+.meet-words mark { background: none; color: var(--apricot); font-weight: 600; border-bottom: 3px solid var(--ochre); }
+@media (max-width: 560px) {
+  .meet-card:has(> img, > svg) { grid-template-columns: minmax(0, 1fr) 30%; }
+  .meet-art { max-height: 160px; }
+}
+
+.match-board { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+.match-board > div { display: grid; gap: .75rem; align-content: start; grid-auto-rows: 1fr; }
+.match-tile { min-height: 58px; min-width: 0; padding: .5rem; background: var(--surface2); border: 2px solid var(--border-firm); color: var(--ink); font: inherit; font-size: 1.05rem; overflow-wrap: anywhere; cursor: pointer; }
+.match-tile[lang] { font-size: 1.3rem; }
+.match-tile[aria-pressed="true"] { border-color: var(--indigo); background: #dfe6e8; box-shadow: 0 4px 0 var(--indigo); }
+.match-tile.found { border-color: var(--leaf); background: #e5edde; box-shadow: none; cursor: default; animation: settle .35s; }
+.match-tile.wrong { border-color: var(--rubric); background: var(--rose-wash); }
+.game-status { min-height: 1.65em; margin-top: 1rem; }
+.lesson-stage .game-status { margin-bottom: 0; }
+.game-actions { margin-top: 1rem; display: flex; justify-content: flex-end; }
+
+#playHost > h1 { font-family: var(--serif-display); font-size: clamp(2.5rem, 6vw, 3.8rem); line-height: 1.15; }
+#playHost > h1:focus { outline: none; }
+.game-list { display: grid; gap: 1rem; margin-top: 1.5rem; }
+.game-card { display: grid; grid-template-columns: 104px minmax(0, 1fr); column-gap: 1.1rem; align-items: center; padding: 1rem; min-height: 112px; text-align: left; font: inherit; color: var(--surface); border: 0; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 0 #24161066; }
+.game-match { background: var(--apricot); }
+.game-spell { background: var(--indigo); }
+.game-listen { background: var(--viridian); }
+.game-sign { grid-row: 1 / 3; font-size: 1.9rem; text-align: center; white-space: nowrap; }
+.game-sign i { margin-left: .5rem; }
+.game-sign svg { width: 56px; display: block; margin: auto; }
+.game-title { font-family: var(--serif-display); font-size: 1.7rem; font-weight: 700; line-height: 1.1; align-self: end; }
+.game-title + span { align-self: start; }
+
+.spell-slots { display: flex; flex-wrap: wrap; gap: .4rem; margin-block: 1rem 1.4rem; }
+.spell-slots span { width: 2.6rem; height: 3.1rem; display: grid; place-items: center; font-size: 1.7rem; border-bottom: 3px solid var(--border-firm); }
+.spell-slots.complete span { border-color: var(--leaf); animation: settle .35s; }
+.spell-tiles { display: flex; flex-wrap: wrap; gap: .75rem; }
+.spell-tile { width: 56px; height: 56px; font: inherit; font-size: 1.6rem; background: var(--surface2); border: 2px solid var(--border-firm); color: var(--ink); cursor: pointer; }
+.spell-tile:disabled { visibility: hidden; }
+.spell-tile.wrong { border-color: var(--rubric); background: var(--rose-wash); }
+.spell-tile.hint { border-color: var(--ochre); background: #f6e3bb; }
+#panel-play .lesson-options { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 1.2rem; }
+.listen-options .lesson-option { font-size: 1.9rem; min-height: 84px; }
+.missed-list { list-style: none; margin: .6rem 0 1rem; }
+.missed-list b { font-size: 1.3rem; margin-right: .5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-option, .match-tile, .spell-tile, .game-card, .lesson-primary { transition: none; }
+}

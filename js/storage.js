@@ -91,6 +91,15 @@ function loadStreak() {
   try { return JSON.parse(raw); } catch { return { currentStreak: 0, longestStreak: 0, lastActiveDate: null, activeDates: [] }; }
 }
 
+// Stored streaks are updated when activity happens. Derive the visible value
+// from the last study date so a missed day never leaves an old streak on screen.
+function getCurrentStreak() {
+  const data = loadStreak();
+  return data.lastActiveDate === isoToday() || data.lastActiveDate === isoYesterday()
+    ? (data.currentStreak || 0)
+    : 0;
+}
+
 function saveStreak(data) {
   localStorage.setItem(KEYS.streak, JSON.stringify(data));
 }
@@ -122,7 +131,7 @@ function getWeekActivity() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() + mondayOffset + i);
-    const iso = d.toISOString().slice(0, 10);
+    const iso = localDateKey(d);
     result.push(data.activeDates.includes(iso));
   }
   return result;

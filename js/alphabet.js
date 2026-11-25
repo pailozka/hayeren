@@ -9,22 +9,33 @@ const AUDIO_ERROR_NAMES = { 1: 'MEDIA_ERR_ABORTED', 2: 'MEDIA_ERR_NETWORK', 3: '
 
 function flagAudioError(btnEl, label) {
   if (!btnEl?.isConnected) return;
+  if (btnEl.closest('#gameStage') && typeof game !== 'undefined' && game?.taskFinished) return;
   btnEl.classList.remove('playing');
   btnEl.classList.add('audio-error');
   btnEl.title = label;
   const status = document.getElementById(btnEl.dataset.audioStatus);
-  if (status) status.textContent = 'Audio unavailable. You can still rate this card.';
+  if (status) status.textContent = btnEl.dataset.audioErrorMessage || 'Audio unavailable. You can still rate this card.';
+  const recoveryAction = document.getElementById(btnEl.dataset.audioErrorAction);
+  if (recoveryAction) recoveryAction.hidden = false;
 }
 
 function stopLetterAudio() {
   if (!_alphaAudio) return;
   _alphaAudio.pause();
+  _alphaAudio.onended = null;
+  _alphaAudio.onerror = null;
   document.querySelectorAll('.letter-audio-btn.playing').forEach(
     button => button.classList.remove('playing'));
 }
 
 function playLetterAudio(l, btnEl) {
   if (!_alphaAudio) _alphaAudio = new Audio();
+  // Calls from spelling/matching don't have a button; they must not inherit
+  // an error handler that still points at a previous Review or Alphabet card.
+  if (!btnEl) {
+    _alphaAudio.onended = null;
+    _alphaAudio.onerror = null;
+  }
   if (btnEl) {
     document.querySelectorAll('.letter-audio-btn.playing, .letter-audio-btn.audio-error').forEach(b => {
       b.classList.remove('playing', 'audio-error');

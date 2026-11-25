@@ -5,7 +5,7 @@ let _phrasebookInited = false;
 let _dailyInited = false;
 let _calendarInited = false;
 
-const PANEL_NAMES = ['home', 'lesson', 'practice', 'dialogue', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
+const PANEL_NAMES = ['home', 'lesson', 'play', 'practice', 'dialogue', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
 
 const panelScrollPositions = {};
 let currentPanel = 'home';
@@ -33,7 +33,7 @@ function showPanel(name, btnEl, fromHash) {
     b.removeAttribute('aria-current');
   });
   document.getElementById('panel-' + name).classList.add('active');
-  const group = { lesson: 'home', dialogue: 'practice', quiz: 'practice',
+  const group = { lesson: 'home', play: 'practice', dialogue: 'practice', quiz: 'practice',
     flashcards: 'practice', phrases: 'practice', calendar: 'practice', resources: 'practice' };
   const tab = btnEl || document.querySelector(`.tab-btn[data-panel="${group[name] || name}"]`);
   if (tab) {
@@ -46,6 +46,7 @@ function showPanel(name, btnEl, fromHash) {
   }
 
   if (name === 'lesson') renderLesson();
+  if (name === 'play') renderPlay();
   if (name === 'dialogue') renderDialogue();
   if (name === 'practice') renderDashJump();
   if (name === 'home') {

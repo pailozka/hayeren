@@ -241,7 +241,7 @@ function renderRecallSession(s) {
       ${s.items.map(it => `
         <div class="recall-item" role="button" tabindex="0" aria-expanded="false" onclick="toggleStudyAnswer(this)" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
           <div class="recall-q">${it.q}</div>
-          <div class="recall-ans">${it.a}</div>
+          <div class="recall-ans" hidden>${it.a}</div>
         </div>`).join('')}
     </div>
     <p class="session-hint">Tap any row to reveal.</p>`;
@@ -312,7 +312,7 @@ function renderReadingSession(s) {
         <div class="reading-line" role="button" tabindex="0" aria-expanded="false" onclick="toggleStudyAnswer(this)" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
           <div class="rl-arm">${l.arm}</div>
           <div class="rl-rom">${l.rom}</div>
-          <div class="rl-eng">${l.eng}</div>
+          <div class="rl-eng" hidden>${l.eng}</div>
         </div>`).join('')}
     </div>
     <p class="session-hint">Tap a line to reveal the translation.</p>`;
@@ -347,11 +347,9 @@ function startDrillQuiz(mode, category, direction, upTo) {
     if (direction) setQuizDirection(direction);
   } else {
     setQuizMode('words');
-    if (category && category !== 'all') {
-      wordQuizCategory = category;
-      initWordQuiz(category);
-      buildWordQuizCats();
-    }
+    wordQuizCategory = category || 'all';
+    initWordQuiz(wordQuizCategory);
+    buildWordQuizCats();
   }
 }
 
@@ -360,7 +358,7 @@ function startDrillFlashcards(mode, category, upTo) {
   if (!_flashcardsInited) { _flashcardsInited = true; initFlashcards(); }
   setFCDeck(mode === 'letters' ? 'letters' : 'words');
   if (mode === 'letters') setFCLetterScope(upTo);
-  if (mode !== 'letters' && category && category !== 'all') setFCCategory(category);
+  if (mode !== 'letters') setFCCategory(category || 'all');
 }
 
 function initDaily() {
@@ -369,5 +367,7 @@ function initDaily() {
 }
 
 function toggleStudyAnswer(el) {
-  el.setAttribute('aria-expanded', String(el.classList.toggle('revealed')));
+  const revealed = el.classList.toggle('revealed');
+  el.setAttribute('aria-expanded', String(revealed));
+  el.querySelector('.recall-ans, .rl-eng')?.toggleAttribute('hidden', !revealed);
 }
