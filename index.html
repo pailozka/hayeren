@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover.0">
 <title>Հայերեն — Armenian Learning</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,15 +21,11 @@
 <nav class="app-nav" aria-label="Main navigation">
   <div class="nav-logo">Հայերեն <span>Eastern Armenian</span></div>
   <div class="nav-tabs">
-    <button class="tab-btn active"  data-panel="home"       onclick="showPanel('home', this)">Home</button>
-    <button class="tab-btn"         data-panel="review"     onclick="showPanel('review', this)">Review<span class="tab-badge" id="tabDueBadge"></span></button>
-    <button class="tab-btn"         data-panel="daily"      onclick="showPanel('daily', this)">Program</button>
-    <button class="tab-btn"         data-panel="alphabet"   onclick="showPanel('alphabet', this)">Alphabet</button>
-    <button class="tab-btn"         data-panel="quiz"       onclick="showPanel('quiz', this)">Quiz</button>
-    <button class="tab-btn"         data-panel="flashcards" onclick="showPanel('flashcards', this)">Flashcards</button>
-    <button class="tab-btn"         data-panel="phrases"    onclick="showPanel('phrases', this)">Phrases</button>
-    <button class="tab-btn"         data-panel="calendar"   onclick="showPanel('calendar', this)">Calendar</button>
-    <button class="tab-btn"         data-panel="resources"  onclick="showPanel('resources', this)">Resources</button>
+    <button class="tab-btn active" data-panel="home" aria-current="page" onclick="showPanel('home')">Home</button>
+    <button class="tab-btn" data-panel="daily" onclick="showPanel('daily')">Program</button>
+    <button class="tab-btn" data-panel="review" onclick="showPanel('review')">Review<span class="tab-badge" id="tabDueBadge"></span></button>
+    <button class="tab-btn" data-panel="practice" onclick="showPanel('practice')">Practice</button>
+    <button class="tab-btn" data-panel="alphabet" onclick="showPanel('alphabet')">Alphabet</button>
   </div>
 </nav>
 
@@ -45,37 +41,31 @@
 
     <section id="lessonLaunch" class="lesson-launch" aria-label="Guided lesson"></section>
 
-    <p class="dialogue-launch"><a href="#dialogue">Practice a conversation →</a></p>
+    <section class="dash-primary" id="dashPrimary" aria-label="Study options"></section>
 
-    <section class="dash-primary" id="dashPrimary"></section>
-
-    <section class="dash-figures" id="dashFigures"></section>
-
-    <section class="dash-section">
-      <h2>Your progress through the program</h2>
+    <details class="dash-details">
+      <summary>Your progress</summary>
+      <div class="dash-figures" id="dashFigures"></div>
       <div class="dash-blocks" id="dashBlocks"></div>
-    </section>
+      <p class="dash-history"><a href="#calendar">View study calendar →</a></p>
+    </details>
 
-    <section class="dash-section">
-      <h2>Jump anywhere</h2>
-      <div class="dash-jump" id="dashJump"></div>
-    </section>
-
-    <section class="dash-section">
-      <h2>The year so far</h2>
-      <div class="heatmap-wrap"><div class="heatmap" id="dashHeatmap"></div></div>
-      <div class="heatmap-key">
-        <span>quieter</span>
-        <i class="hm-cell level-0"></i><i class="hm-cell level-1"></i><i class="hm-cell level-2"></i><i class="hm-cell level-3"></i><i class="hm-cell level-4"></i>
-        <span>busier</span>
-      </div>
-    </section>
   </div>
 </div>
 
 <section id="panel-lesson" class="panel"><div class="lesson-shell" id="lessonHost"></div></section>
 
 <section id="panel-dialogue" class="panel"><div class="lesson-shell" id="dialogueHost"></div></section>
+
+<section id="panel-practice" class="panel">
+  <div class="dash practice-hub">
+    <header>
+      <h1>Practice</h1>
+      <p>Choose what you want to work on today.</p>
+    </header>
+    <div class="dash-jump" id="dashJump"></div>
+  </div>
+</section>
 
 <!-- ====== REVIEW PANEL ====== -->
 <div id="panel-review" class="panel">

@@ -8,23 +8,21 @@ function initDashboard() {
   renderDashPrimary();
   renderDashFigures();
   renderDashBlocks();
-  renderDashJump();
-  renderDashHeatmap();
   updateDueBadge();
 }
 
 function renderDashGreeting() {
   const h = new Date().getHours();
   const greeting = h < 12
-    ? { arm: 'Բարի՛ <em>լույս</em>', rom: 'Bari luys' }
+    ? { arm: 'Բարի՛ <em>լույս</em>', english: 'Good morning' }
     : h < 18
-      ? { arm: 'Բարի՛ <em>օր</em>', rom: 'Bari or' }
-      : { arm: 'Բարի՛ <em>երեկո</em>', rom: 'Bari yereko' };
+      ? { arm: 'Բարի՛ <em>օր</em>', english: 'Good afternoon' }
+      : { arm: 'Բարի՛ <em>երեկո</em>', english: 'Good evening' };
 
   const el = document.getElementById('dashGreeting');
   if (el) el.innerHTML = greeting.arm;
   const line = document.getElementById('dashLine');
-  if (line) line.textContent = greeting.rom + ' — pick up where you left off, clear your review queue, or wander wherever you like.';
+  if (line) line.textContent = greeting.english + ' · Eastern Armenian';
 }
 
 function renderDashPrimary() {
@@ -35,43 +33,22 @@ function renderDashPrimary() {
   const resumeDay = getCurrentDay();
   const day = getDay(resumeDay);
   const { done, total } = getDayCompletion(resumeDay);
-  const started = done > 0;
+  const due = stats.dueToday;
 
-  const dueCard = stats.dueToday > 0
-    ? `
-      <button class="dash-card lead" onclick="goPanel('review')">
-        <div class="dash-card-kicker">Due now</div>
-        <div class="dash-card-figure">${stats.dueToday}</div>
-        <div class="dash-card-title">item${stats.dueToday === 1 ? '' : 's'} to review</div>
-        <div class="dash-card-note">Scheduled by how well you knew them last time. Clearing this is the single highest-value thing you can do today.</div>
-        <span class="dash-card-go">Start reviewing →</span>
-      </button>`
-    : `
-      <button class="dash-card" onclick="goPanel('review')">
-        <div class="dash-card-kicker">Review queue</div>
-        <div class="dash-card-figure">✓</div>
-        <div class="dash-card-title">Nothing due</div>
-        <div class="dash-card-note">${stats.tracked ? 'You are current. Study something new and it will enter the queue.' : 'Study anything — a Daily session, a quiz, a flashcard — and it starts being scheduled.'}</div>
-        <span class="dash-card-go">Open review →</span>
-      </button>`;
-
-  host.innerHTML = dueCard + `
-    <button class="dash-card" onclick="goDay(${resumeDay})">
-      <div class="dash-card-kicker">${started ? 'Continue' : 'Next up'}</div>
-      <div class="dash-card-figure">${resumeDay}</div>
-      <div class="dash-card-title">Day ${resumeDay} — ${day.title}</div>
-      <div class="dash-card-note">${day.subtitle}</div>
-      <div class="dash-progress"><div class="dash-progress-fill" style="width:${total ? (done / total * 100) : 0}%"></div></div>
-      <span class="dash-card-go">${done}/${total} sessions · ${started ? 'Resume' : 'Begin'} →</span>
+  host.innerHTML = `
+    <a class="study-link" href="#review">
+      <span><span class="study-title">Review</span><span class="study-note">${due ? `${due} item${due === 1 ? '' : 's'} due today` : 'Nothing due today'}</span></span>
+      <span class="study-arrow" aria-hidden="true">→</span>
+    </a>
+    <button class="study-link" onclick="goDay(${resumeDay})">
+      <span><span class="study-title">Day ${resumeDay} · ${day.title}</span><span class="study-note">${done} of ${total} sessions complete</span></span>
+      <span class="study-arrow" aria-hidden="true">→</span>
     </button>
+    <a class="study-link" href="#dialogue">
+      <span><span class="study-title">Practice a conversation</span><span class="study-note">Build replies in Armenian</span></span>
+      <span class="study-arrow" aria-hidden="true">→</span>
+    </a>`;
 
-    <button class="dash-card" onclick="goPanel('flashcards')">
-      <div class="dash-card-kicker">Free practice</div>
-      <div class="dash-card-figure">${learnedLetters.size}<span>/${letters.length}</span></div>
-      <div class="dash-card-title">Letters marked learned</div>
-      <div class="dash-card-note">No schedule, no program. Shuffle a deck and drill whatever you feel like.</div>
-      <span class="dash-card-go">Open flashcards →</span>
-    </button>`;
 }
 
 function renderDashFigures() {
@@ -129,6 +106,7 @@ function renderDashJump() {
   const host = document.getElementById('dashJump');
   if (!host) return;
   const jumps = [
+    { panel: 'dialogue', title: 'Conversations', note: 'Build replies for everyday situations.' },
     { panel: 'alphabet',   title: 'The alphabet',  note: `All ${letters.length} letters, with sound, notes and example words.` },
     { panel: 'quiz',       title: 'Quiz',          note: 'Multiple choice, letters or vocabulary, both directions.' },
     { panel: 'flashcards', title: 'Flashcards',    note: 'Flip cards that feed the review scheduler.' },
@@ -143,16 +121,14 @@ function renderDashJump() {
     </button>`).join('');
 }
 
-function renderDashHeatmap() {
-  render52WeekHeatmap('dashHeatmap');
-}
-
 function updateDueBadge() {
   const badge = document.getElementById('tabDueBadge');
   if (!badge) return;
   const n = getSrsStats().dueToday;
   badge.textContent = n > 0 ? n : '';
   badge.classList.toggle('visible', n > 0);
+  badge.setAttribute('aria-hidden', 'true');
+  badge.parentElement.setAttribute('aria-label', n > 0 ? `Review, ${n} due` : 'Review');
 }
 
 // ---- Navigation helpers used by the dashboard ----

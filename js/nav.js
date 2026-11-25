@@ -5,7 +5,7 @@ let _phrasebookInited = false;
 let _dailyInited = false;
 let _calendarInited = false;
 
-const PANEL_NAMES = ['home', 'lesson', 'dialogue', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
+const PANEL_NAMES = ['home', 'lesson', 'practice', 'dialogue', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
 
 const panelScrollPositions = {};
 let currentPanel = 'home';
@@ -28,14 +28,13 @@ function showPanel(name, btnEl, fromHash) {
     b.removeAttribute('aria-current');
   });
   document.getElementById('panel-' + name).classList.add('active');
-  const tab = btnEl || document.querySelector(`.tab-btn[data-panel="${name}"]`);
+  const group = { lesson: 'home', dialogue: 'practice', quiz: 'practice',
+    flashcards: 'practice', phrases: 'practice', calendar: 'practice', resources: 'practice' };
+  const tab = btnEl || document.querySelector(`.tab-btn[data-panel="${group[name] || name}"]`);
   if (tab) {
     tab.classList.add('active');
-    tab.setAttribute('aria-current', 'page');
-    const strip = tab.parentElement;
-    strip.scrollTo({ left: tab.offsetLeft - strip.offsetLeft - (strip.clientWidth - tab.clientWidth) / 2, behavior: 'auto' });
+    tab.setAttribute('aria-current', group[name] ? 'true' : 'page');
   }
-
 
   if (!fromHash && location.hash.slice(1) !== name) {
     history.pushState(null, '', '#' + name);
@@ -43,6 +42,7 @@ function showPanel(name, btnEl, fromHash) {
 
   if (name === 'lesson') renderLesson();
   if (name === 'dialogue') renderDialogue();
+  if (name === 'practice') renderDashJump();
   if (name === 'home') {
     initDashboard();
   }
@@ -75,6 +75,11 @@ function showPanel(name, btnEl, fromHash) {
 // Panels are deep-linkable (#quiz, #alphabet, …) and Back/Forward move
 // between them, without turning this into a real router — there's still
 // only one level of navigation.
+document.querySelector('.skip-link').addEventListener('click', event => {
+  event.preventDefault();
+  document.getElementById('mainContent').focus();
+});
+
 window.addEventListener('hashchange', () => {
   showPanel(location.hash.slice(1), null, true);
 });

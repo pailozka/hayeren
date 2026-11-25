@@ -16,12 +16,20 @@ function lessonItems(unit) {
 function saveLesson() { localStorage.setItem(LESSON_KEY, JSON.stringify(lessonState)); }
 function renderLessonLaunch() {
   const resume = lessonState && !lessonState.finished;
+  const unit = lessonState ? lessonState.unit + (resume ? 0 : 1) : 0;
+  const topic = lessonTopics[unit % lessonTopics.length];
+  const topicName = topic[0].toUpperCase() + topic.slice(1);
+  const step = resume ? (lessonState.phase === 'learn' ? lessonState.index : 6 + lessonState.index) : 0;
   document.getElementById('lessonLaunch').innerHTML = `
-    <div><p class="lesson-eyebrow">A little Armenian, every day</p>
-    <h2>${resume ? 'Pick up your short lesson' : 'Letters meet everyday life'}</h2>
-    <p>Three letters. Three useful words. Learn, try both directions, then revisit anything tricky.</p>
-    <span class="lesson-caption">About 5–8 minutes · ${resume ? 'Your place is saved' : 'Eastern Armenian for English speakers'}</span></div>
-    <button class="lesson-primary" onclick="startLesson()">${resume ? 'Continue lesson' : 'Start a short lesson'} →</button>`;
+    <div class="lesson-launch-copy">
+      <p class="lesson-eyebrow">Lesson ${unit + 1} · 5–8 min</p>
+      <h2>${topicName} &amp; the alphabet</h2>
+      <p>${resume ? 'Pick up where you left off.' : 'Meet three letters and three words, then try to recall them.'}</p>
+      ${resume ? `<progress class="lesson-launch-progress" max="${6 + lessonState.queue.length}" value="${step}" aria-label="Current lesson progress"></progress>` : ''}
+      <button class="lesson-primary" onclick="startLesson()">${resume ? 'Continue lesson' : 'Start a short lesson'} <span aria-hidden="true">→</span></button>
+    </div>
+    <img class="lesson-launch-art" src="images/letter-a-cutout.png" alt="" width="240" height="240">`;
+
 }
 function startLesson() {
   if (!lessonState || lessonState.finished) {

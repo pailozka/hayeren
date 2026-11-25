@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hayeren-v10';
+const CACHE_NAME = 'hayeren-v11';
 const APP_SHELL = [
   './',
   'index.html',

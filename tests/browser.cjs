@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 (async () => {
  const browser = await chromium.launch({headless:true});
  const page = await browser.newPage({viewport:{width:1280,height:900}, reducedMotion:'reduce', timezoneId:'Europe/Prague'});
+ await page.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort());
  const errors=[]; page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(() => {localStorage.clear();}); await page.reload();
@@ -79,14 +80,29 @@ const assert = require('node:assert/strict');
  }
  for(const width of [1280,390,320]) {
   await page.setViewportSize({width,height:844});
-  for(const panel of ['home','daily','alphabet','quiz','flashcards','phrases','calendar','resources','review','lesson','dialogue']) {
+  for(const panel of ['home','daily','alphabet','quiz','flashcards','phrases','calendar','resources','review','lesson','dialogue','practice']) {
    await page.evaluate(name=>showPanel(name),panel);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),`No overflow: ${panel} ${width}`);
   }
  }
+ await page.getByRole('button',{name:'Practice',exact:true}).click();
+ await page.getByRole('button',{name:/^Quiz/}).click();
+ assert.equal(await page.getByRole('button',{name:'Practice',exact:true}).getAttribute('aria-current'),'true');
+ await page.locator('.skip-link').focus();
+ await page.locator('.skip-link').press('Enter');
+ assert.equal(await page.locator('.panel.active').getAttribute('id'),'panel-quiz');
+ await page.evaluate(()=>showPanel('daily'));
+ await page.evaluate(()=>scrollTo({top:400,behavior:'instant'}));
+ const navBox=await page.locator('.nav-tabs').boundingBox();
+ assert.ok(Math.abs(navBox.y+navBox.height-844)<2,'Mobile tabs remain at the bottom while scrolling');
+ for (const tab of await page.locator('.nav-tabs .tab-btn').all()) {
+  const rect=await tab.boundingBox();
+  assert.ok(rect.x>=0 && rect.x+rect.width<=320 && rect.height>=44,'Every mobile tab is within easy reach');
+ }
  await page.evaluate(()=>showPanel('home'));
+ await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
  await page.screenshot({path:'/tmp/hayeren-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, and 33 responsive panel checks.');
+ console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, and 36 responsive panel checks, and mobile navigation.');
 })().catch(e=>{console.error(e);process.exit(1)});

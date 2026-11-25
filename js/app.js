@@ -21,6 +21,12 @@ if ('serviceWorker' in navigator) {
 
 // Account for wrapped navigation and larger text without a fixed scroll offset.
 const appNav = document.querySelector('.app-nav');
-if (window.ResizeObserver) new ResizeObserver(() => {
-  document.documentElement.style.setProperty('--nav-height', appNav.offsetHeight + 'px');
-}).observe(appNav);
+const navTabs = appNav.querySelector('.nav-tabs');
+if (window.ResizeObserver) {
+  const navigationObserver = new ResizeObserver(() => {
+    document.documentElement.style.setProperty('--nav-height', appNav.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--mobile-nav-height', navTabs.offsetHeight + 'px');
+  });
+  navigationObserver.observe(appNav);
+  navigationObserver.observe(navTabs);
+}
