@@ -151,6 +151,33 @@ const assert = require('node:assert/strict');
  await page.evaluate(()=>showPanel('review'));
  await page.getByRole('button',{name:'Learn 9 new'}).waitFor();
 
+ await page.evaluate(() => {
+  const records = loadSrsData();
+  for (const key of ['letter:ayb', 'word:w001']) {
+   records[key] = {...newSrsRecord(), due:isoToday()};
+  }
+  saveSrsData(records);
+  showPanel('home');
+  showPanel('review');
+ });
+ assert.equal(await page.locator('#reviewLetterAudio').count(),0);
+ await page.getByRole('button',{name:'Reveal'}).click();
+ const audioButton = page.getByRole('button',{name:'Hear the letter name Ayb'});
+ const reviewBeforeAudio = await page.evaluate(()=>JSON.stringify(loadSrsData()));
+ await audioButton.press('Enter');
+ assert.match(await page.evaluate(()=>_alphaAudio.src), /audio\/letters\/ayb\.mp3$/);
+ assert.equal(await page.evaluate(()=>JSON.stringify(loadSrsData())),reviewBeforeAudio);
+ assert.equal(await audioButton.getAttribute('aria-label'),'Hear the letter name Ayb');
+ await page.evaluate(() => {
+  _alphaAudio.play = () => Promise.reject(new DOMException('Test audio failure','NotSupportedError'));
+ });
+ await audioButton.click();
+ await page.getByText('Audio unavailable. You can still rate this card.').waitFor();
+ await page.getByRole('button',{name:/Got it/}).click();
+ assert.equal(await page.evaluate(()=>_alphaAudio.paused),true);
+ await page.getByRole('button',{name:'Reveal'}).click();
+ assert.equal(await page.locator('#reviewLetterAudio').count(),0);
+
  await page.evaluate(()=>showPanel('alphabet'));
  const ayb = page.getByRole('button',{name:'Study Ayb',exact:true});
  await ayb.press('Enter');
@@ -204,5 +231,5 @@ const assert = require('node:assert/strict');
  await page.screenshot({path:'/tmp/hayeren-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, 36 responsive panel checks, mobile navigation, Program continuation, phrase search and saving, Review allowance, keyboard alphabet dialog, and full quiz rounds.');
+ console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, 36 responsive panel checks, mobile navigation, Program continuation, phrase search and saving, Review allowance, keyboard alphabet dialog, full quiz rounds, and review letter audio.');
 })().catch(e=>{console.error(e);process.exit(1)});

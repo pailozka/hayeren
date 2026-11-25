@@ -21,6 +21,7 @@ function showPanel(name, btnEl, fromHash) {
   if (!PANEL_NAMES.includes(name)) name = 'home';
   panelScrollPositions[currentPanel] = window.scrollY;
   const changingPanel = currentPanel !== name;
+  if (changingPanel) stopLetterAudio();
   if (changingPanel && currentPanel === 'alphabet') {
     const dialog = document.getElementById('letterDialog');
     if (dialog.open) dialog.close();

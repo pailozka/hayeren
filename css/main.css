@@ -2076,3 +2076,7 @@ main:focus { outline: none; }
 
 .quiz-feedback:not(:empty) { margin-top: .7rem; color: var(--apricot-deep); }
 #quizPrompt:focus { outline: none; }
+
+#reviewLetterAudio { margin-top: .55rem; }
+#reviewLetterAudio.playing { border-color: var(--apricot); background: var(--apricot-wash); }
+.review-audio-status { color: var(--apricot-deep); font-size: .85rem; }

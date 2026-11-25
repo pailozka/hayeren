@@ -8,10 +8,19 @@ let _alphaAudio = null; // one shared <audio>, so playback never overlaps
 const AUDIO_ERROR_NAMES = { 1: 'MEDIA_ERR_ABORTED', 2: 'MEDIA_ERR_NETWORK', 3: 'MEDIA_ERR_DECODE', 4: 'MEDIA_ERR_SRC_NOT_SUPPORTED' };
 
 function flagAudioError(btnEl, label) {
-  if (!btnEl) return;
+  if (!btnEl?.isConnected) return;
   btnEl.classList.remove('playing');
   btnEl.classList.add('audio-error');
   btnEl.title = label;
+  const status = document.getElementById(btnEl.dataset.audioStatus);
+  if (status) status.textContent = 'Audio unavailable. You can still rate this card.';
+}
+
+function stopLetterAudio() {
+  if (!_alphaAudio) return;
+  _alphaAudio.pause();
+  document.querySelectorAll('.letter-audio-btn.playing').forEach(
+    button => button.classList.remove('playing'));
 }
 
 function playLetterAudio(l, btnEl) {
@@ -22,6 +31,8 @@ function playLetterAudio(l, btnEl) {
     });
     btnEl.classList.add('playing');
     btnEl.title = '';
+    const status = document.getElementById(btnEl.dataset.audioStatus);
+    if (status) status.textContent = '';
     _alphaAudio.onended = () => btnEl.classList.remove('playing');
 
     // A 404 or unsupported file doesn't always reject play()'s promise —
@@ -59,11 +70,7 @@ function updateLetterCard(card, letter) {
 function buildAlphabet() {
   const grid = document.getElementById('letterGrid');
   const dialog = document.getElementById('letterDialog');
-  dialog.onclose = () => {
-    if (_alphaAudio) _alphaAudio.pause();
-    document.querySelectorAll('.letter-audio-btn.playing').forEach(
-      button => button.classList.remove('playing'));
-  };
+  dialog.onclose = stopLetterAudio;
   grid.replaceChildren();
   for (const letter of letters) {
     const card = document.createElement('div');

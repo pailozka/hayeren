@@ -12,6 +12,7 @@ let reviewRevealed = false;
 let reviewIsNewBatch = false; // true while working through a "Learn N new" batch
 
 function initReview() {
+  stopLetterAudio();
   reviewQueue = getDueItems();
   reviewIndex = 0;
   reviewRevealed = false;
@@ -164,9 +165,24 @@ function startNewBatch() {
 }
 
 function revealReview() {
+  if (reviewRevealed) return;
+  const entry = reviewQueue[reviewIndex];
+  if (!entry) return;
   reviewRevealed = true;
   document.getElementById('rvBack')?.classList.add('visible');
   document.getElementById('rvRevealBtn')?.remove();
+  if (entry.type === 'letter' && entry.item.audio) {
+    const card = document.getElementById('reviewCard');
+    card.insertAdjacentHTML('beforeend', `
+      <button type="button" class="ctrl-btn letter-audio-btn" id="reviewLetterAudio"
+        aria-label="Hear the letter name ${entry.item.name}" data-audio-status="reviewAudioStatus">
+        ▶ Hear the letter name
+      </button>
+      <p class="review-audio-status" id="reviewAudioStatus" role="status"></p>`);
+    document.getElementById('reviewLetterAudio').onclick = event => {
+      playLetterAudio(entry.item, event.currentTarget);
+    };
+  }
   const actions = document.getElementById('reviewActions');
   if (actions) {
     actions.style.display = 'flex';
@@ -176,6 +192,7 @@ function revealReview() {
 
 function rateReview(rating) {
   if (!reviewRevealed) return;
+  stopLetterAudio();
   reviewRevealed = false;
   const entry = reviewQueue[reviewIndex];
   if (entry) {
