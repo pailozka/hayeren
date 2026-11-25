@@ -5,7 +5,7 @@ let _phrasebookInited = false;
 let _dailyInited = false;
 let _calendarInited = false;
 
-const PANEL_NAMES = ['home', 'lesson', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
+const PANEL_NAMES = ['home', 'lesson', 'dialogue', 'review', 'daily', 'alphabet', 'quiz', 'flashcards', 'phrases', 'calendar', 'resources'];
 
 const panelScrollPositions = {};
 let currentPanel = 'home';
@@ -42,6 +42,7 @@ function showPanel(name, btnEl, fromHash) {
   }
 
   if (name === 'lesson') renderLesson();
+  if (name === 'dialogue') renderDialogue();
   if (name === 'home') {
     initDashboard();
   }

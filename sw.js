@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hayeren-v9';
+const CACHE_NAME = 'hayeren-v10';
 const APP_SHELL = [
   './',
   'index.html',
@@ -6,6 +6,7 @@ const APP_SHELL = [
   'css/main.css',
   'js/app.js',
   'js/lesson.js',
+  'js/dialogue.js',
   'js/storage.js',
   'js/srs.js',
   'js/nav.js',

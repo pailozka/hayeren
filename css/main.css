@@ -2020,3 +2020,21 @@ main:focus { outline: none; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
 
 .session-tag, .session-meta, .session-title-main { display: block; }
+
+.dialogue-launch { margin: -1rem 0 2rem; }
+.dialogue-launch a, .dialogue-stage summary { color: var(--apricot-deep); }
+#dialogueHeading { font-family: var(--serif-display); font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; margin: .65rem 0; }
+.dialogue-list { display: grid; gap: .75rem; margin-top: 1.5rem; }
+.dialogue-list button { text-align: left; }
+.dialogue-list span { display: block; margin-top: .25rem; }
+.dialogue-note { color: var(--ink-mid); margin: .7rem 0 1rem; }
+.dialogue-stage { margin: 1rem 0; }
+.dialogue-stage p { margin-bottom: .75rem; }
+.dialogue-line { font-size: clamp(1.4rem, 6vw, 2.2rem); }
+.dialogue-stage summary { cursor: pointer; padding-block: .5rem; }
+.dialogue-stage h2 { margin: 1.2rem 0 .85rem; }
+.dialogue-tiles, .dialogue-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.dialogue-tiles [aria-pressed="true"] { opacity: .5; }
+.dialogue-selection { min-height: 3rem; border-bottom: 1px solid var(--border); padding: .7rem 0; }
+.dialogue-actions button:disabled { opacity: .55; cursor: default; }
+#dialogueFeedback { margin-top: .75rem; }

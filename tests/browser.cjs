@@ -50,9 +50,36 @@ const assert = require('node:assert/strict');
  assert.equal(await page.locator('.session-body').first().evaluate(e=>e.inert),false);
  await page.locator('[data-panel="alphabet"]').click(); await page.goBack();
  assert.equal(await page.locator('.panel.active').getAttribute('id'),'panel-daily');
+ await page.evaluate(()=>showPanel('home'));
+ await page.getByRole('link',{name:'Practice a conversation'}).click();
+ await page.getByRole('button',{name:/Meet someone/}).click();
+ await page.getByRole('button',{name:'ես',exact:true}).click();
+ await page.getByRole('button',{name:'Check reply'}).click();
+ await page.getByRole('status').filter({hasText:'Try again'}).waitFor();
+ for (const words of [['Բարև','ձեզ'],['Անունս','Արամ','է']]) {
+  for (const word of words) await page.getByRole('button',{name:word,exact:true}).click();
+  await page.getByRole('button',{name:'Check reply'}).click();
+  await page.getByRole('button',{name:'Continue'}).click();
+ }
+ await page.getByRole('status').filter({hasText:'Conversation complete'}).waitFor();
+ await page.reload();
+ await page.getByRole('button',{name:/Meet someone.*Completed/}).waitFor();
+ for (const [title, replies] of [
+  ['Order at a café', [['Ջուր','խնդրեմ'], ['Հաշիվը','խնդրեմ']]],
+  ['Ask someone to repeat', [['Չեմ','հասկանում'], ['Կարո՞ղ','եք','կրկնել']]],
+ ]) {
+  await page.getByRole('button',{name:new RegExp(title)}).click();
+  for (const words of replies) {
+   for (const word of words) await page.getByRole('button',{name:word,exact:true}).click();
+   await page.getByRole('button',{name:'Check reply'}).click();
+   await page.getByRole('button',{name:'Continue'}).click();
+  }
+  await page.getByRole('status').filter({hasText:'Conversation complete'}).waitFor();
+  await page.getByRole('button',{name:'Choose a conversation'}).click();
+ }
  for(const width of [1280,390,320]) {
   await page.setViewportSize({width,height:844});
-  for(const panel of ['home','daily','alphabet','quiz','flashcards','phrases','calendar','resources','review','lesson']) {
+  for(const panel of ['home','daily','alphabet','quiz','flashcards','phrases','calendar','resources','review','lesson','dialogue']) {
    await page.evaluate(name=>showPanel(name),panel);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),`No overflow: ${panel} ${width}`);
   }
@@ -61,5 +88,5 @@ const assert = require('node:assert/strict');
  await page.screenshot({path:'/tmp/hayeren-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, and 30 responsive panel checks.');
+ console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, and 33 responsive panel checks.');
 })().catch(e=>{console.error(e);process.exit(1)});
