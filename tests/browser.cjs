@@ -166,10 +166,43 @@ const assert = require('node:assert/strict');
  await page.goBack();
  assert.equal(await page.locator('#letterDialog').evaluate(dialog=>dialog.open),false);
 
+ await page.evaluate(()=>showPanel('quiz'));
+ await page.getByRole('button',{name:'Words',exact:true}).click();
+ const wordCount = await page.evaluate(()=>wordQuizItems.length);
+ for (let index=0; index<wordCount; index++) {
+  const answer = await page.evaluate(()=>{
+   const word = wordQuizItems[wordQuizIndex];
+   return wordQuizIndex % 2 ? word.arm : word.eng;
+  });
+  await page.getByRole('button',{name:answer,exact:true}).click();
+  if (!index) {
+   await page.evaluate(()=>showPanel('home'));
+   await page.evaluate(()=>showPanel('quiz'));
+   assert.equal(await page.locator('#quizScore').textContent(),'Score: 1/1');
+  }
+  await page.locator('#nextBtn').click();
+ }
+ assert.equal(await page.locator('#quizScore').textContent(), `Final: ${wordCount}/${wordCount}`);
+ await page.locator('#nextBtn').click();
+ assert.equal(await page.locator('#quizScore').textContent(),'Score: 0/0');
+ await page.getByRole('button',{name:'Letters',exact:true}).click();
+ await page.getByRole('button',{name:'Type it',exact:true}).click();
+ const letterCount = await page.evaluate(()=>quizLetters.length);
+ for (let index=0; index<letterCount; index++) {
+  const answer = await page.evaluate(()=>acceptableAnswers(quizLetters[quizIndex].sound)[0]);
+  const input = page.getByRole('textbox',{name:'Your answer'});
+  await input.fill(answer);
+  await input.press('Enter');
+  await page.locator('#nextBtn').click();
+ }
+ assert.equal(await page.locator('#quizScore').textContent(), `Final: ${letterCount}/${letterCount}`);
+ await page.locator('#nextBtn').click();
+ await page.getByRole('textbox',{name:'Your answer'}).waitFor();
+
  await page.evaluate(()=>showPanel('home'));
  await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
  await page.screenshot({path:'/tmp/hayeren-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, 36 responsive panel checks, mobile navigation, Program continuation, phrase search and saving, Review allowance, and keyboard alphabet dialog.');
+ console.log('PASS: lesson retry, persistence, SRS, keyboard accordion, scroll restoration, history, conversation retry and completion, 36 responsive panel checks, mobile navigation, Program continuation, phrase search and saving, Review allowance, keyboard alphabet dialog, and full quiz rounds.');
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -2073,3 +2073,6 @@ main:focus { outline: none; }
 
 .dialogue-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: space-between; }
 .dialogue-note summary { color: var(--apricot-deep); cursor: pointer; padding-block: .35rem; }
+
+.quiz-feedback:not(:empty) { margin-top: .7rem; color: var(--apricot-deep); }
+#quizPrompt:focus { outline: none; }

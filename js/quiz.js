@@ -25,6 +25,7 @@ let wordQuizAnswered = false;
 
 // ---- Entry point called by nav ----
 function initQuizPanel() {
+  if (quizLetters.length || wordQuizItems.length) return;
   if (quizMode === 'letters') {
     initLetterQuiz();
   } else {
@@ -49,28 +50,34 @@ function setQuizMode(mode, upTo) {
 
 function setQuizDirection(dir) {
   quizDirection = dir;
-  document.getElementById('btnDirToSound').classList.toggle('active', dir === 'toSound');
-  document.getElementById('btnDirToChar').classList.toggle('active', dir === 'toChar');
+  syncQuizControls();
   initLetterQuiz();
 }
 
 function setQuizAnswerMode(mode) {
+  if (quizAnswerMode === mode) return;
   quizAnswerMode = mode;
-  document.getElementById('btnAnsChoice').classList.toggle('active', mode === 'choice');
-  document.getElementById('btnAnsType').classList.toggle('active', mode === 'type');
-  // Direction only means something for multiple-choice letters — typed
-  // answers always go Armenian -> Latin, so hide it in type mode.
-  const dirGroup = document.getElementById('directionGroup');
-  if (dirGroup) dirGroup.style.display = (quizMode === 'letters' && mode === 'choice') ? '' : 'none';
-  if (quizMode === 'letters') renderLetterQuestion();
-  else renderWordQuestion();
+  syncQuizControls();
+  if (quizMode === 'letters') initLetterQuiz();
+  else initWordQuiz(wordQuizCategory);
 }
 
 function syncQuizControls() {
-  document.getElementById('btnModeLetters').classList.toggle('active', quizMode === 'letters');
-  document.getElementById('btnModeWords').classList.toggle('active', quizMode === 'words');
-  const dirGroup = document.getElementById('directionGroup');
-  if (dirGroup) dirGroup.style.display = (quizMode === 'letters' && quizAnswerMode === 'choice') ? '' : 'none';
+  const controls = {
+    btnModeLetters: quizMode === 'letters',
+    btnModeWords: quizMode === 'words',
+    btnDirToSound: quizDirection === 'toSound',
+    btnDirToChar: quizDirection === 'toChar',
+    btnAnsChoice: quizAnswerMode === 'choice',
+    btnAnsType: quizAnswerMode === 'type',
+  };
+  for (const [id, active] of Object.entries(controls)) {
+    const button = document.getElementById(id);
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
+  document.getElementById('directionGroup').style.display =
+    quizMode === 'letters' && quizAnswerMode === 'choice' ? '' : 'none';
 }
 
 function showLetterQuizUI() {
@@ -91,13 +98,14 @@ function resetQuizCard() {
   if (card) {
     card.style.display = '';
     card.innerHTML = `
-      <div class="quiz-prompt" id="quizPrompt">—</div>
+      <div class="quiz-prompt" id="quizPrompt" tabindex="-1">—</div>
       <div class="quiz-char" id="quizChar">·</div>
       <div class="quiz-subtext" id="quizSub"></div>
     `;
   }
   const opts = document.getElementById('quizOptions');
   if (opts) opts.innerHTML = '';
+  document.getElementById('quizFeedback').textContent = '';
   const nb = document.getElementById('nextBtn');
   if (nb) { nb.classList.remove('visible'); nb.onclick = nextQuestion; nb.textContent = 'Next →'; }
 }
@@ -127,6 +135,7 @@ function initLetterQuiz() {
   quizIndex    = 0;
   quizScore    = 0;
   quizAnswered = false;
+  resetQuizCard();
   renderLetterQuestion();
 }
 
@@ -137,6 +146,7 @@ function renderLetterQuestion() {
   updateScoreAndProgress(quizScore, quizIndex, quizLetters.length);
   quizAnswered = false;
   quizTypedMiss = false;
+  document.getElementById('quizFeedback').textContent = '';
   document.getElementById('nextBtn').classList.remove('visible');
 
   if (quizAnswerMode === 'type') {
@@ -146,6 +156,9 @@ function renderLetterQuestion() {
     charEl.style.fontSize = '';
     document.getElementById('quizSub').textContent = l.armName;
     renderTypedAnswer(acceptableAnswers(l.sound), (correctOnFirstTry) => {
+      quizAnswered = true;
+      if (correctOnFirstTry) quizScore++;
+      updateScoreAndProgress(quizScore, quizIndex + 1, quizLetters.length);
       reviewItem('letter', l.id, correctOnFirstTry ? 'good' : 'hard');
       bumpReviewCount(1);
       recordActivity();
@@ -188,13 +201,27 @@ function checkLetterAnswer(selected, correct, btn) {
   bumpReviewCount(1);
 
   recordActivity();
-  document.getElementById('nextBtn').classList.add('visible');
+  updateScoreAndProgress(quizScore, quizIndex + 1, quizLetters.length);
+  showQuizNext();
 }
 
 function nextQuestion() {
-  quizIndex++;
-  if (quizMode === 'letters') renderLetterQuestion();
-  else renderWordQuestion();
+  if (quizMode === 'letters' && quizAnswered) {
+    quizIndex++;
+    renderLetterQuestion();
+  } else if (quizMode === 'words' && wordQuizAnswered) {
+    wordQuizIndex++;
+    renderWordQuestion();
+  }
+  const prompt = document.getElementById('quizPrompt');
+  const target = document.getElementById('quizTypeInput') || prompt || document.getElementById('nextBtn');
+  target.focus();
+}
+
+function showQuizNext() {
+  const next = document.getElementById('nextBtn');
+  next.classList.add('visible');
+  next.focus();
 }
 
 function showLetterResult() {
@@ -206,6 +233,7 @@ function showLetterResult() {
     <div class="quiz-subtext">${quizScore >= total * 0.8 ? 'Excellent! You know these letters well.' : quizScore >= total * 0.5 ? 'Good progress! Keep reviewing.' : 'Keep studying — it takes time!'}</div>
   `;
   document.getElementById('quizOptions').innerHTML = '';
+  document.getElementById('quizFeedback').textContent = '';
   document.getElementById('quizProgress').style.width = '100%';
   document.getElementById('quizScore').textContent = `Final: ${quizScore}/${total}`;
   const nb = document.getElementById('nextBtn');
@@ -254,6 +282,7 @@ function renderWordQuestion() {
   updateScoreAndProgress(wordQuizScore, wordQuizIndex, wordQuizItems.length);
   wordQuizAnswered = false;
   quizTypedMiss = false;
+  document.getElementById('quizFeedback').textContent = '';
   document.getElementById('nextBtn').classList.remove('visible');
 
   if (quizAnswerMode === 'type') {
@@ -263,6 +292,9 @@ function renderWordQuestion() {
     charEl.style.fontSize = '3rem';
     document.getElementById('quizSub').textContent = w.romanized;
     renderTypedAnswer(acceptableAnswers(w.eng), (correctOnFirstTry) => {
+      wordQuizAnswered = true;
+      if (correctOnFirstTry) wordQuizScore++;
+      updateScoreAndProgress(wordQuizScore, wordQuizIndex + 1, wordQuizItems.length);
       reviewItem('word', w.id, correctOnFirstTry ? 'good' : 'hard');
       bumpReviewCount(1);
       recordActivity();
@@ -290,7 +322,7 @@ function renderWordQuestion() {
     const charEl = document.getElementById('quizChar');
     charEl.textContent = w.eng;
     charEl.style.fontSize = '2.5rem';
-    document.getElementById('quizSub').textContent = w.romanized;
+    document.getElementById('quizSub').textContent = '';
 
     const correctVal = w.arm;
     const pool = vocabulary.map(x => x.arm);
@@ -310,7 +342,8 @@ function checkWordAnswer(selected, correct, btn) {
   bumpReviewCount(1);
 
   recordActivity();
-  document.getElementById('nextBtn').classList.add('visible');
+  updateScoreAndProgress(wordQuizScore, wordQuizIndex + 1, wordQuizItems.length);
+  showQuizNext();
 }
 
 function showWordResult() {
@@ -322,6 +355,7 @@ function showWordResult() {
     <div class="quiz-subtext">${wordQuizScore >= total * 0.8 ? 'Excellent vocabulary!' : wordQuizScore >= total * 0.5 ? 'Good progress! Keep at it.' : 'Keep studying — words take time!'}</div>
   `;
   document.getElementById('quizOptions').innerHTML = '';
+  document.getElementById('quizFeedback').textContent = '';
   document.getElementById('quizProgress').style.width = '100%';
   document.getElementById('quizScore').textContent = `Final: ${wordQuizScore}/${total}`;
   const nb = document.getElementById('nextBtn');
@@ -362,7 +396,7 @@ function renderTypedAnswer(accepted, onSettled) {
   const container = document.getElementById('quizOptions');
   container.className = 'quiz-type';
   container.innerHTML = `
-    <input type="text" id="quizTypeInput" class="quiz-type-input" autocomplete="off"
+    <input type="text" id="quizTypeInput" class="quiz-type-input" aria-label="Your answer" enterkeyhint="done" autocomplete="off"
       autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
     <button class="mark-btn" id="quizTypeSubmit">Check</button>
     <div class="quiz-type-feedback" id="quizTypeFeedback" aria-live="polite"></div>
@@ -385,7 +419,7 @@ function renderTypedAnswer(accepted, onSettled) {
       feedback.textContent = quizTypedMiss ? `Correct — it was "${accepted[0]}."` : 'Correct!';
       feedback.className = 'quiz-type-feedback correct';
       onSettled(!quizTypedMiss);
-      document.getElementById('nextBtn').classList.add('visible');
+      showQuizNext();
     } else if (!quizTypedMiss) {
       quizTypedMiss = true;
       feedback.textContent = 'Not quite — try once more.';
@@ -398,16 +432,22 @@ function renderTypedAnswer(accepted, onSettled) {
       feedback.textContent = `The answer was "${accepted[0]}."`;
       feedback.className = 'quiz-type-feedback wrong';
       onSettled(false);
-      document.getElementById('nextBtn').classList.add('visible');
+      showQuizNext();
     }
   }
 
   submitBtn.onclick = submit;
-  input.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+  input.onkeydown = event => {
+    if (event.key !== 'Enter' || event.isComposing) return;
+    event.preventDefault();
+    submit();
+  };
   input.focus();
 }
 
 function markOptions(selected, correct) {
+  document.getElementById('quizFeedback').textContent =
+    selected === correct ? '✓ Correct' : `Correct answer: ${correct}`;
   document.querySelectorAll('.quiz-opt').forEach(b => {
     b.disabled = true;
     if (b.textContent === correct) b.classList.add('correct');
