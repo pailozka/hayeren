@@ -41,6 +41,7 @@ function playLetterAudio(l, btnEl) {
   _alphaAudio.play().catch(err => {
     // Autoplay-policy rejections (NotAllowedError) do come through here,
     // reliably and immediately — unlike the load-failure case above.
+    if (err.name === 'AbortError') return;
     console.warn(`Audio failed for "${l.name}" (${l.audio}):`, err.name, err.message);
     flagAudioError(btnEl, err.name === 'NotAllowedError'
       ? 'Blocked by the browser — click again'
@@ -48,75 +49,79 @@ function playLetterAudio(l, btnEl) {
   });
 }
 
+function updateLetterCard(card, letter) {
+  const learned = learnedLetters.has(letter.id);
+  card.classList.toggle('learned', learned);
+  card.querySelector('.letter-open').setAttribute('aria-label',
+    `Study ${letter.name}${learned ? ', learned' : ''}`);
+}
+
 function buildAlphabet() {
   const grid = document.getElementById('letterGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  letters.forEach(l => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'letter-card' + (learnedLetters.has(l.id) ? ' learned' : '');
-    card.setAttribute('aria-pressed', learnedLetters.has(l.id) ? 'true' : 'false');
+  const dialog = document.getElementById('letterDialog');
+  dialog.onclose = () => {
+    if (_alphaAudio) _alphaAudio.pause();
+    document.querySelectorAll('.letter-audio-btn.playing').forEach(
+      button => button.classList.remove('playing'));
+  };
+  grid.replaceChildren();
+  for (const letter of letters) {
+    const card = document.createElement('div');
+    card.className = 'letter-card';
     card.innerHTML = `
-      ${learnedLetters.has(l.id) ? '<div class="learned-dot"></div>' : ''}
-      <button type="button" class="letter-audio-btn card-audio-btn" aria-label="Play pronunciation of ${l.name}">🔊</button>
-      <img class="letter-card-art" src="${l.img}" alt="Illuminated bird-letter for ${l.arm}" loading="lazy">
-      <div class="latin-trans">${l.sound}</div>
-      <div class="letter-name">${l.name}</div>
-    `;
-    card.onclick = () => showLetterDetail(l.id, card);
-    card.querySelector('.card-audio-btn').onclick = (e) => {
-      e.stopPropagation();
-      playLetterAudio(l, e.currentTarget);
-    };
-    grid.appendChild(card);
-  });
+      <button type="button" class="letter-open" aria-haspopup="dialog">
+        <img class="letter-card-art" src="${letter.img}" alt="" loading="lazy">
+        <span class="card-glyph" lang="hy">${letter.arm} ${letter.lower}</span>
+        <span class="latin-trans">${letter.sound}</span>
+        <span class="letter-name">${letter.name}</span>
+        <span class="learned-dot" aria-hidden="true">✓</span>
+      </button>
+      <button type="button" class="letter-audio-btn card-audio-btn" aria-label="Hear the letter name ${letter.name}">🔊</button>`;
+    updateLetterCard(card, letter);
+    card.querySelector('.letter-open').onclick = () => showLetterDetail(letter, card);
+    card.querySelector('.card-audio-btn').onclick = event => playLetterAudio(letter, event.currentTarget);
+    grid.append(card);
+  }
 }
 
-function showLetterDetail(id, cardEl) {
-  document.querySelectorAll('.letter-card').forEach(c => {
-    c.classList.remove('active-card');
-    c.setAttribute('aria-pressed', c.classList.contains('learned') ? 'true' : 'false');
-  });
-  if (cardEl) cardEl.classList.add('active-card');
-  const l = letters.find(x => x.id === id);
-  if (!l) return;
+function showLetterDetail(letter, card) {
+  const dialog = document.getElementById('letterDialog');
   const detail = document.getElementById('letterDetail');
-  detail.className = 'letter-detail visible';
+  document.getElementById('letterDialogTitle').textContent = letter.name;
   detail.innerHTML = `
     <div class="detail-glyph">
-      <img class="detail-art" src="${l.img}" alt="Illuminated bird-letter for ${l.arm}">
-      <div class="detail-char">${l.arm}${l.lower}</div>
-      <button type="button" class="letter-audio-btn detail-audio-btn" aria-label="Play pronunciation of ${l.name}">🔊 ${l.armName}</button>
-      <div class="detail-ipa">${l.ipa}</div>
-      <div class="detail-name">${l.name}</div>
-      <button class="mark-btn" onclick="toggleLearned('${l.id}')">${learnedLetters.has(l.id) ? '✓ Learned' : 'Mark as Learned'}</button>
+      <img class="detail-art" src="${letter.img}" alt="Illuminated bird-letter">
+      <div class="detail-char" lang="hy">${letter.arm} ${letter.lower}</div>
+      <button type="button" class="letter-audio-btn detail-audio-btn" aria-label="Hear the letter name ${letter.name}">🔊 <span lang="hy">${letter.armName}</span></button>
+      <button type="button" class="mark-btn detail-learned" aria-label="Mark ${letter.name} as learned"></button>
     </div>
     <div class="detail-info">
-      <h3>${l.name} — "${l.sound}"</h3>
-      <p>${l.desc}</p>
-      <h4 class="detail-subhead">Pronunciation</h4>
-      <p class="detail-ipa-line">IPA <span>${l.ipa}</span></p>
+      <h3>Sound: ${letter.sound}</h3>
+      <p>${letter.desc}</p>
+      <p class="detail-ipa-line">IPA <span>${letter.ipa}</span></p>
     </div>
     <div class="detail-words">
-      <h4>Example Words</h4>
-      ${l.words.map(w => `<div class="word-item"><div class="word-arm">${w.arm}</div><div class="word-eng">${w.eng}</div></div>`).join('')}
-    </div>
-  `;
-  detail.querySelector('.detail-audio-btn').onclick = (e) => playLetterAudio(l, e.currentTarget);
-  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function toggleLearned(id) {
-  if (learnedLetters.has(id)) {
-    learnedLetters.delete(id);
-  } else {
-    learnedLetters.add(id);
-    recordActivity();
+      <h3>Example words</h3>
+      ${letter.words.map(word => `<div class="word-item"><div class="word-arm" lang="hy">${word.arm}</div><div class="word-eng">${word.eng}</div></div>`).join('')}
+    </div>`;
+  detail.querySelector('.detail-audio-btn').onclick = event => playLetterAudio(letter, event.currentTarget);
+  const mark = detail.querySelector('.detail-learned');
+  function updateMark() {
+    const learned = learnedLetters.has(letter.id);
+    mark.setAttribute('aria-pressed', String(learned));
+    mark.textContent = learned ? '✓ Learned' : 'Mark as learned';
+    updateLetterCard(card, letter);
   }
-  saveLearnedLetters(learnedLetters);
-  buildAlphabet();
-  const cards = document.querySelectorAll('.letter-card');
-  const idx = letters.findIndex(l => l.id === id);
-  showLetterDetail(id, cards[idx]);
+  updateMark();
+  mark.onclick = () => {
+    if (learnedLetters.has(letter.id)) {
+      learnedLetters.delete(letter.id);
+    } else {
+      learnedLetters.add(letter.id);
+      recordActivity();
+    }
+    saveLearnedLetters(learnedLetters);
+    updateMark();
+  };
+  dialog.showModal();
 }

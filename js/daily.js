@@ -31,7 +31,11 @@ function buildDaySelector() {
         + (done > 0 && done < total ? ' partial' : '');
       btn.textContent = n;
       btn.title = `Day ${n} — ${getDay(n).title} (${done}/${total} sessions)`;
-      btn.onclick = () => switchDay(n);
+      if (n === activeDay) btn.setAttribute('aria-current', 'step');
+      btn.onclick = () => {
+        document.getElementById('programDays').open = false;
+        switchDay(n, true);
+      };
       row.appendChild(btn);
     });
     group.appendChild(row);
@@ -39,13 +43,15 @@ function buildDaySelector() {
   });
 }
 
-function switchDay(n) {
+function switchDay(n, focusHeading = false) {
   const day = getDay(n);
   if (!day) return;
   activeDay = n;
 
   const heading = document.getElementById('dayHeading');
-  if (heading) heading.textContent = `Day ${day.day} — ${day.title}`;
+  heading.textContent = `Day ${day.day} — ${day.title}`;
+  document.getElementById('previousDay').disabled = n <= 1;
+  document.getElementById('nextDay').disabled = n >= curriculum.length;
   const sub = document.getElementById('day-subtitle');
   if (sub) sub.textContent = day.subtitle;
   const meta = document.getElementById('dayMeta');
@@ -57,7 +63,8 @@ function switchDay(n) {
   renderDaySessions(day);
   buildDaySelector();
   if (document.getElementById('panel-daily').classList.contains('active')) {
-    document.getElementById('dayHeading').scrollIntoView({block: 'start', behavior: 'instant'});
+    if (focusHeading) heading.focus({ preventScroll: true });
+    heading.scrollIntoView({block: 'start', behavior: 'instant'});
   }
 }
 
@@ -66,15 +73,18 @@ function renderDaySessions(day) {
   if (!host) return;
   host.innerHTML = '';
 
+  const nextIncomplete = day.sessions.findIndex((_, index) =>
+    !isSessionComplete(day.day, 's' + (index + 1)));
   day.sessions.forEach((session, i) => {
     const key = 's' + (i + 1);
     const done = isSessionComplete(day.day, key);
+    const initiallyOpen = i === nextIncomplete;
     const block = document.createElement('div');
     block.className = 'session-block' + (done ? ' completed' : '');
     block.id = `sb-${day.day}-${key}`;
 
     block.innerHTML = `
-      <button type="button" class="session-header" aria-expanded="${i === 0}" aria-controls="body-${day.day}-${key}">
+      <button type="button" class="session-header" aria-expanded="${initiallyOpen}" aria-controls="body-${day.day}-${key}">
         <span class="session-header-left">
           <span class="session-tag">${session.tag}</span>
           <span class="session-meta">${session.when} · ${session.min} min</span>
@@ -82,10 +92,10 @@ function renderDaySessions(day) {
         </span>
         <span class="session-header-right">
           <span class="session-done-badge${done ? ' visible' : ''}">✓ Done</span>
-          <span class="session-chevron${i === 0 ? ' open' : ''}">▼</span>
+          <span class="session-chevron${initiallyOpen ? ' open' : ''}">▼</span>
         </span>
       </button>
-      <div id="body-${day.day}-${key}" class="session-body${i === 0 ? ' open' : ''}">
+      <div id="body-${day.day}-${key}" class="session-body${initiallyOpen ? ' open' : ''}">
         <div class="session-body-inner">
           ${renderSessionContent(session)}
           <button class="complete-btn" ${done ? 'disabled' : ''}>
@@ -153,6 +163,30 @@ function completeSession(dayNum, key, btn, session) {
     meta.textContent = `${day.minutes} minutes · ${done} of ${total} sessions complete`;
   }
   if (typeof renderCalendar === 'function') renderCalendar();
+  const day = getDay(dayNum);
+  const nextSession = day.sessions.findIndex((_, index) =>
+    !isSessionComplete(dayNum, 's' + (index + 1)));
+  if (nextSession < 0 && dayNum >= curriculum.length) {
+    block?.querySelector('.session-header').focus();
+    return;
+  }
+  const next = document.createElement('button');
+  next.type = 'button';
+  next.className = 'complete-btn program-continue';
+  next.textContent = nextSession < 0 ? 'Next day →' : 'Next session →';
+  next.onclick = () => {
+    if (nextSession < 0) {
+      switchDay(dayNum + 1, true);
+      return;
+    }
+    const header = document.querySelector(`#sb-${dayNum}-s${nextSession + 1} .session-header`);
+    if (header.getAttribute('aria-expanded') === 'false') header.click();
+    header.focus({ preventScroll: true });
+    header.scrollIntoView({ block: 'start', behavior: 'instant' });
+    next.remove();
+  };
+  btn.after(next);
+  next.focus();
 }
 
 // ---- Session content renderers, by `kind` ----
@@ -331,7 +365,6 @@ function startDrillFlashcards(mode, category, upTo) {
 
 function initDaily() {
   activeDay = getCurrentDay();
-  buildDaySelector();
   switchDay(activeDay);
 }
 

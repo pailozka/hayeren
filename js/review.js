@@ -36,6 +36,10 @@ function renderReviewCard() {
   const host = document.getElementById('reviewCard');
   const actions = document.getElementById('reviewActions');
   const progress = document.getElementById('reviewProgress');
+  const counter = document.getElementById('reviewCounter');
+  const inProgress = reviewIndex < reviewQueue.length;
+  progress.parentElement.hidden = !inProgress;
+  if (counter) counter.textContent = inProgress ? `${reviewIndex + 1} of ${reviewQueue.length}` : '';
   if (!host) return;
 
   if (!reviewQueue.length) {
@@ -66,8 +70,6 @@ function renderReviewCard() {
   reviewRevealed = false;
 
   if (progress) progress.style.width = (reviewIndex / reviewQueue.length * 100) + '%';
-  const counter = document.getElementById('reviewCounter');
-  if (counter) counter.textContent = `${reviewIndex + 1} / ${reviewQueue.length}`;
 
   const front = item.arm;
   let sub, back;
@@ -85,7 +87,7 @@ function renderReviewCard() {
 
   host.innerHTML = `
     <div class="rv-type">${typeLabel}${record.lapses ? ` · struggled ${record.lapses}×` : ''}${reviewIsNewBatch ? ' · new' : ''}</div>
-    <div class="rv-front">${front}</div>
+    <div class="rv-front" lang="hy">${front}</div>
     <div class="rv-sub">${sub}</div>
     <div class="rv-back" id="rvBack">${back}</div>
     <button class="mark-btn" id="rvRevealBtn" onclick="revealReview()">Reveal</button>
@@ -157,8 +159,8 @@ function startNewBatch() {
   }));
   reviewIndex = 0;
   reviewIsNewBatch = true;
-  bumpNewIntroduced(batch.length);
   renderReviewCard();
+  document.getElementById('rvRevealBtn')?.focus();
 }
 
 function revealReview() {
@@ -166,19 +168,29 @@ function revealReview() {
   document.getElementById('rvBack')?.classList.add('visible');
   document.getElementById('rvRevealBtn')?.remove();
   const actions = document.getElementById('reviewActions');
-  if (actions) actions.style.display = 'flex';
+  if (actions) {
+    actions.style.display = 'flex';
+    actions.querySelector('.fc-rate-ok')?.focus();
+  }
 }
 
 function rateReview(rating) {
   if (!reviewRevealed) return;
+  reviewRevealed = false;
   const entry = reviewQueue[reviewIndex];
   if (entry) {
     reviewItem(entry.type, entry.id, rating);
     bumpReviewCount(1);
+    if (reviewIsNewBatch) bumpNewIntroduced(1);
   }
   recordActivity();
   if (typeof renderCalendar === 'function') renderCalendar();
 
   reviewIndex++;
+  renderReviewStats();
+  updateDueBadge();
   renderReviewCard();
+  const next = document.getElementById('rvRevealBtn');
+  if (next) next.focus();
+  else document.getElementById('reviewCard').focus();
 }

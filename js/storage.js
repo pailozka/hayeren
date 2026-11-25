@@ -165,7 +165,7 @@ function loadNewPerDay() {
 }
 
 function saveNewPerDay(n) {
-  localStorage.setItem(KEYS.newPerDay, String(Math.max(1, Math.round(n))));
+  if (Number.isFinite(n)) localStorage.setItem(KEYS.newPerDay, String(Math.min(50, Math.max(1, Math.round(n)))));
 }
 
 function getNewIntroducedToday() {

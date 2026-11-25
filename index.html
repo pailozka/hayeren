@@ -72,12 +72,12 @@
   <div class="review-section">
     <div class="review-head">
       <h2>Review</h2>
-      <p>Everything the scheduler says is due today — letters, words and phrases in one queue. This is the habit that makes the rest stick.</p>
+      <p>Recall each letter, word, or phrase, then see how well you remembered it.</p>
     </div>
     <div class="review-stats" id="reviewStats"></div>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="reviewProgress" style="width:0%"></div></div>
     <div class="review-counter" id="reviewCounter"></div>
-    <div class="review-card" id="reviewCard"></div>
+    <div class="review-card" id="reviewCard" tabindex="-1"></div>
     <div class="review-actions" id="reviewActions" style="display:none;">
       <button class="fc-rate fc-rate-hard" onclick="rateReview('hard')">Hard<span>1 day</span></button>
       <button class="fc-rate fc-rate-ok"   onclick="rateReview('good')">Got it<span>schedule out</span></button>
@@ -91,12 +91,19 @@
   <div class="pattern-band" role="presentation"></div>
   <div class="schedule-section">
     <div class="program-head">
-      <h2 id="dayHeading">Day 1 — First Four Letters</h2>
+      <h2 id="dayHeading" tabindex="-1">Day 1 — First Four Letters</h2>
       <div id="day-subtitle" class="program-subtitle"></div>
       <div id="dayMeta" class="program-meta"></div>
     </div>
 
-    <nav id="daySelector" class="day-selector"></nav>
+    <div class="program-navigation">
+      <button class="ctrl-btn" id="previousDay" onclick="switchDay(activeDay - 1, true)">← Previous day</button>
+      <button class="ctrl-btn" id="nextDay" onclick="switchDay(activeDay + 1, true)">Next day →</button>
+    </div>
+    <details class="program-days" id="programDays">
+      <summary>Browse all days</summary>
+      <nav id="daySelector" class="day-selector" aria-label="Program days"></nav>
+    </details>
 
     <div id="dayContent"></div>
   </div>
@@ -139,7 +146,13 @@
       <img class="alpha-initial" src="images/letter-a-cutout.png" alt="An illuminated Armenian manuscript initial, a bird worked into the letterform">
     </div>
     <div class="letter-grid" id="letterGrid"></div>
-    <div class="letter-detail" id="letterDetail"></div>
+    <dialog id="letterDialog" aria-labelledby="letterDialogTitle">
+      <div class="letter-dialog-head">
+        <h2 id="letterDialogTitle"></h2>
+        <form method="dialog"><button class="ctrl-btn" autofocus>Close</button></form>
+      </div>
+      <div class="letter-detail" id="letterDetail"></div>
+    </dialog>
   </div>
 </div>
 
@@ -239,11 +252,23 @@
     <div class="phrases-header">
       <div>
         <h2>Phrasebook</h2>
-        <p>Common phrases for everyday Eastern Armenian conversation. Click any phrase to expand it.</p>
+        <p>Find a phrase for everyday Eastern Armenian conversation.</p>
       </div>
       <img class="phrases-emblem" src="images/mother-armenia-crop.jpg" alt="Mother Armenia, the monument overlooking Yerevan">
     </div>
-    <div class="phrase-cats" id="phraseCats"></div>
+    <div class="phrase-controls">
+      <label class="phrase-search">Search phrases
+        <input type="search" id="phraseSearch" placeholder="English, Armenian, or romanization" autocomplete="off">
+      </label>
+      <label class="phrase-category">Situation
+        <select id="phraseCategory"><option value="all">All situations</option></select>
+      </label>
+      <button type="button" id="phraseSaved" class="ctrl-btn" aria-pressed="false">Saved (0)</button>
+    </div>
+    <div class="phrase-results-bar">
+      <p id="phraseCount" role="status"></p>
+      <button type="button" id="phraseReset" class="ctrl-btn" hidden>Clear filters</button>
+    </div>
     <div class="phrase-list" id="phraseList"></div>
   </div>
 </div>

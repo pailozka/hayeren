@@ -1,74 +1,107 @@
-// ===== PHRASEBOOK MODULE =====
-
-let activePhraseCategory = 'all';
+// ===== PHRASEBOOK =====
+const savedPhraseKey = 'hayeren_savedPhrases';
+let savedPhrases;
+try {
+  savedPhrases = new Set(JSON.parse(localStorage.getItem(savedPhraseKey)));
+} catch {
+  savedPhrases = new Set();
+}
 
 function initPhrasebook() {
-  buildPhraseCats();
-  renderPhrases('all', null);
-}
-
-function buildPhraseCats() {
-  const container = document.getElementById('phraseCats');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const allBtn = document.createElement('button');
-  allBtn.className = 'phrase-cat-btn active';
-  allBtn.textContent = 'All';
-  allBtn.onclick = () => renderPhrases('all', allBtn);
-  container.appendChild(allBtn);
-
-  phraseCategories.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'phrase-cat-btn';
-    btn.textContent = cat.label;
-    btn.onclick = () => renderPhrases(cat.id, btn);
-    container.appendChild(btn);
+  const category = document.getElementById('phraseCategory');
+  phraseCategories.forEach(({ id, label }) => category.add(new Option(label, id)));
+  category.addEventListener('change', renderPhrases);
+  document.getElementById('phraseSearch').addEventListener('input', renderPhrases);
+  document.getElementById('phraseSaved').addEventListener('click', event => {
+    const button = event.currentTarget;
+    button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
+    renderPhrases();
   });
+  document.getElementById('phraseReset').addEventListener('click', () => {
+    const search = document.getElementById('phraseSearch');
+    search.value = '';
+    category.value = 'all';
+    document.getElementById('phraseSaved').setAttribute('aria-pressed', 'false');
+    renderPhrases();
+    search.focus();
+  });
+  renderPhrases();
 }
 
-function renderPhrases(catId, clickedBtn) {
-  activePhraseCategory = catId;
+function normalizePhraseSearch(value) {
+  return value.normalize('NFKC').toLowerCase()
+    .replace(/[’‘'՞՛՜]/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
 
-  document.querySelectorAll('.phrase-cat-btn').forEach(b => b.classList.remove('active'));
-  if (clickedBtn) {
-    clickedBtn.classList.add('active');
-  } else {
-    // Activate 'All' on initial render
-    const firstBtn = document.querySelector('.phrase-cat-btn');
-    if (firstBtn) firstBtn.classList.add('active');
+function renderPhrases() {
+  const query = document.getElementById('phraseSearch').value;
+  const terms = normalizePhraseSearch(query).split(' ').filter(Boolean);
+  const category = document.getElementById('phraseCategory').value;
+  const savedButton = document.getElementById('phraseSaved');
+  const savedOnly = savedButton.getAttribute('aria-pressed') === 'true';
+  const list = document.getElementById('phraseList');
+  const results = phrases.filter(phrase => {
+    if (category !== 'all' && phrase.category !== category) return false;
+    if (savedOnly && !savedPhrases.has(phrase.id)) return false;
+    const searchable = normalizePhraseSearch([phrase.arm, phrase.romanized, phrase.eng].join(' '));
+    return terms.every(term => searchable.includes(term));
+  });
+
+  savedButton.textContent = `Saved (${savedPhrases.size})`;
+  document.getElementById('phraseCount').textContent =
+    `${results.length} ${results.length === 1 ? 'phrase' : 'phrases'}`;
+  document.getElementById('phraseReset').hidden = !query && category === 'all' && !savedOnly;
+  list.replaceChildren();
+  if (!results.length) {
+    const message = document.createElement('p');
+    message.className = 'phrase-empty';
+    message.textContent = savedOnly && !savedPhrases.size
+      ? 'Save a phrase to find it here later.'
+      : 'Try a shorter search or choose all situations.';
+    list.append(message);
+    return;
   }
 
-  const filtered = catId === 'all'
-    ? phrases
-    : phrases.filter(p => p.category === catId);
-
-  const list = document.getElementById('phraseList');
-  if (!list) return;
-  list.innerHTML = '';
-
-  filtered.forEach(p => {
-    const card = document.createElement('div');
+  for (const phrase of results) {
+    const card = document.createElement('article');
     card.className = 'phrase-card';
-
-    const literalHtml = p.literal
-      ? `<div class="phrase-literal">Literal: "${p.literal}"</div>`
-      : '';
-    const usageHtml = p.usage
-      ? `<div class="phrase-usage">${p.usage}</div>`
-      : '';
-
     card.innerHTML = `
-      <div class="phrase-arm">${p.arm}</div>
-      <div class="phrase-romanized">${p.romanized}</div>
-      <div class="phrase-eng">${p.eng}</div>
-      <div class="phrase-details">
-        <div class="phrase-ipa">${p.ipa}</div>
-        ${literalHtml}
-        ${usageHtml}
-      </div>
-    `;
-    card.onclick = () => card.classList.toggle('expanded');
-    list.appendChild(card);
-  });
+      <div class="phrase-arm" lang="hy">${lessonEscape(phrase.arm)}</div>
+      <div class="phrase-romanized">${lessonEscape(phrase.romanized)}</div>
+      <div class="phrase-eng">${lessonEscape(phrase.eng)}</div>
+      <div class="phrase-card-tools">
+        <button type="button" class="ctrl-btn phrase-save"></button>
+        <details class="phrase-details">
+          <summary>Pronunciation &amp; usage</summary>
+          <div class="phrase-ipa">${lessonEscape(phrase.ipa)}</div>
+          ${phrase.literal ? `<div class="phrase-literal">Literally “${lessonEscape(phrase.literal)}”</div>` : ''}
+          ${phrase.usage ? `<div class="phrase-usage">${lessonEscape(phrase.usage)}</div>` : ''}
+        </details>
+      </div>`;
+    const button = card.querySelector('.phrase-save');
+    function updateSavedState() {
+      const saved = savedPhrases.has(phrase.id);
+      button.setAttribute('aria-pressed', String(saved));
+      button.setAttribute('aria-label', `Save phrase: ${phrase.eng}`);
+      button.textContent = saved ? '★ Saved' : '☆ Save';
+    }
+    updateSavedState();
+    button.onclick = () => {
+      if (savedPhrases.has(phrase.id)) savedPhrases.delete(phrase.id);
+      else savedPhrases.add(phrase.id);
+      localStorage.setItem(savedPhraseKey, JSON.stringify([...savedPhrases]));
+      if (savedOnly) {
+        const previousIndex = [...list.children].indexOf(card);
+        renderPhrases();
+        const remaining = list.querySelectorAll('.phrase-save');
+        (remaining[Math.min(previousIndex, remaining.length - 1)] || savedButton).focus();
+      } else {
+        updateSavedState();
+        savedButton.textContent = `Saved (${savedPhrases.size})`;
+      }
+    };
+    list.append(card);
+  }
 }

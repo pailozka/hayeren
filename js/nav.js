@@ -21,6 +21,10 @@ function showPanel(name, btnEl, fromHash) {
   if (!PANEL_NAMES.includes(name)) name = 'home';
   panelScrollPositions[currentPanel] = window.scrollY;
   const changingPanel = currentPanel !== name;
+  if (changingPanel && currentPanel === 'alphabet') {
+    const dialog = document.getElementById('letterDialog');
+    if (dialog.open) dialog.close();
+  }
   currentPanel = name;
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => {

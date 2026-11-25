@@ -33,6 +33,7 @@ const dialogues = [
 ];
 
 const dialogueProgressKey = 'hayeren_dialogueCompletion';
+const dialogueDraftKey = 'hayeren_dialogueDrafts';
 let completedDialogues;
 try {
   completedDialogues = new Set(JSON.parse(localStorage.getItem(dialogueProgressKey)));
@@ -44,11 +45,35 @@ let dialogueTurn = 0;
 let dialogueSelection = [];
 let dialogueChecked = false;
 
-function openDialogue(id) {
+function loadDialogueDrafts() {
+  try {
+    return JSON.parse(localStorage.getItem(dialogueDraftKey)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDialogueDraft() {
+  const drafts = loadDialogueDrafts();
+  if (dialogueTurn >= activeDialogue.turns.length || (dialogueTurn === 0 && !dialogueSelection.length)) {
+    delete drafts[activeDialogue.id];
+  } else {
+    drafts[activeDialogue.id] = { turn: dialogueTurn, selection: dialogueSelection, checked: dialogueChecked };
+  }
+  localStorage.setItem(dialogueDraftKey, JSON.stringify(drafts));
+}
+
+function openDialogue(id, restart = false) {
   activeDialogue = dialogues.find(dialogue => dialogue.id === id) || null;
-  dialogueTurn = 0;
-  dialogueSelection = [];
-  dialogueChecked = false;
+  const draft = !restart && activeDialogue ? loadDialogueDrafts()[id] : null;
+  const turn = Number.isInteger(draft?.turn) && activeDialogue.turns[draft.turn] ? draft.turn : 0;
+  dialogueTurn = turn;
+  dialogueSelection = Array.isArray(draft?.selection)
+    ? [...new Set(draft.selection)].filter(index => Number.isInteger(index) &&
+      index >= 0 && index <= activeDialogue.turns[turn].reply.length)
+    : [];
+  dialogueChecked = draft?.checked === true;
+  if (restart && activeDialogue) saveDialogueDraft();
   showPanel('dialogue');
   document.getElementById('dialogueHeading').focus({ preventScroll: true });
   document.getElementById('dialogueHost').scrollIntoView({ block: 'start', behavior: 'instant' });
@@ -57,20 +82,24 @@ function openDialogue(id) {
 function renderDialogue() {
   const host = document.getElementById('dialogueHost');
   if (!activeDialogue) {
+    const drafts = loadDialogueDrafts();
     host.innerHTML = `<h1 id="dialogueHeading" tabindex="-1">Conversation practice</h1>
       <p>Read what the other person says, then build your reply in Armenian.</p>
       <div class="dialogue-list">${dialogues.map(dialogue => `
         <button class="lesson-option" onclick="openDialogue('${dialogue.id}')">
-          <strong>${dialogue.title}</strong><span>${completedDialogues.has(dialogue.id) ? '✓ Completed · Practice again' : dialogue.setting}</span>
+          <strong>${dialogue.title}</strong><span>${drafts[dialogue.id] ? 'Continue where you left off' : completedDialogues.has(dialogue.id) ? '✓ Completed · Practice again' : dialogue.setting}</span>
         </button>`).join('')}</div>`;
     return;
   }
 
   const turn = activeDialogue.turns[dialogueTurn];
-  host.innerHTML = `<button class="ctrl-btn" onclick="openDialogue()">← All conversations</button>
+  host.innerHTML = `<div class="dialogue-toolbar">
+      <button class="ctrl-btn" onclick="openDialogue()">← All conversations</button>
+      ${turn && (dialogueTurn || dialogueSelection.length) ? `<button class="ctrl-btn" onclick="openDialogue('${activeDialogue.id}', true)">Restart</button>` : ''}
+    </div>
     <h1 id="dialogueHeading" tabindex="-1">${activeDialogue.title}</h1>
     <p>${activeDialogue.setting}</p>
-    <p class="dialogue-note">${activeDialogue.note}</p>`;
+    <details class="dialogue-note"><summary>Language tip</summary><p>${activeDialogue.note}</p></details>`;
 
   if (!turn) {
     host.insertAdjacentHTML('beforeend', `<p role="status">✓ Conversation complete.</p>
@@ -123,6 +152,7 @@ function renderDialogue() {
   tileButtons.forEach((button, index) => {
     button.onclick = () => {
       dialogueSelection.push(index);
+      saveDialogueDraft();
       feedback.textContent = '';
       refresh();
       (tileButtons.slice(index + 1).find(tile => !tile.disabled) ||
@@ -131,6 +161,7 @@ function renderDialogue() {
   });
   undo.onclick = () => {
     const removed = dialogueSelection.pop();
+    saveDialogueDraft();
     feedback.textContent = '';
     refresh();
     tileButtons[removed].focus();
@@ -141,11 +172,13 @@ function renderDialogue() {
     if (!correct) {
       feedback.textContent = 'Try again. Check the meaning and word order, then rebuild your reply.';
       dialogueSelection = [];
+      saveDialogueDraft();
       refresh();
       tileButtons[0].focus();
       return;
     }
     dialogueChecked = true;
+    saveDialogueDraft();
     refresh();
     next.focus();
   };
@@ -153,6 +186,7 @@ function renderDialogue() {
     dialogueTurn++;
     dialogueSelection = [];
     dialogueChecked = false;
+    saveDialogueDraft();
     if (dialogueTurn === activeDialogue.turns.length) {
       completedDialogues.add(activeDialogue.id);
       localStorage.setItem(dialogueProgressKey, JSON.stringify([...completedDialogues]));
