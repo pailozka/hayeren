@@ -38,6 +38,8 @@ function startLesson() {
     saveLesson();
   }
   showPanel('lesson');
+  document.getElementById('lessonStage')?.focus({ preventScroll: true });
+  document.getElementById('lessonHost').scrollIntoView({ block: 'start', behavior: 'instant' });
 }
 function lessonAnswer(item, reverse) { return reverse ? item.arm : item.type === 'letter' ? item.sound : item.eng; }
 function renderLesson() {
@@ -49,12 +51,12 @@ function renderLesson() {
   const task = state.queue[state.index];
   const item = learning ? items[state.index] : task ? items[task.item] : null;
   const step = learning ? state.index : 6 + state.index;
-  host.innerHTML = `<div class="lesson-toolbar"><button class="ctrl-btn" onclick="showPanel('home')">← Save & leave</button><span>Lesson ${state.unit + 1} · ${lessonTopics[state.unit % lessonTopics.length]}</span></div>
-    <progress class="lesson-progress" max="${6 + state.queue.length}" value="${state.finished ? 6 + state.queue.length : step}" aria-label="Lesson progress"></progress>
+  host.innerHTML = `<div class="lesson-toolbar"><button class="ctrl-btn" onclick="showPanel('home')">← Save &amp; leave</button><span>Lesson ${state.unit + 1} · ${lessonTopics[state.unit % lessonTopics.length]}</span></div>
+    <progress class="lesson-progress" max="${6 + state.queue.length}" value="${state.finished ? 6 + state.queue.length : step + Number(state.answered !== null)}" aria-label="Lesson progress"></progress>
     <div id="lessonStage" class="lesson-stage" tabindex="-1"></div>`;
   const stage = document.getElementById('lessonStage');
   if (state.finished) {
-    stage.innerHTML = `<p class="lesson-eyebrow">Lesson complete</p><h1>A little more Armenian is yours.</h1><p>You practiced ${items.length} items in both directions${state.mistakes.length ? ' and worked through the tricky ones' : ''}. They are now in your spaced review queue.</p><div class="lesson-summary">${items.map(i => `<span lang="hy">${i.arm}</span>`).join('')}</div><p>Your longer Program progress stays separate.</p><button class="lesson-primary" onclick="showPanel('review')">Visit review</button> <button class="ctrl-btn" onclick="startLesson()">Another lesson →</button>`;
+    stage.innerHTML = `<h1>Lesson complete</h1><p>You practiced ${items.length} items in both directions${state.mistakes.length ? ' and worked through the tricky ones' : ''}. They’ll be ready for review when due.</p><div class="lesson-summary">${items.map(i => `<span lang="hy">${i.arm}</span>`).join('')}</div><div class="lesson-summary-actions"><button class="lesson-primary" onclick="startLesson()">Another lesson →</button> <button class="ctrl-btn" onclick="showPanel('home')">Back to Home</button></div>`;
     return;
   }
   if (learning) {
@@ -64,7 +66,8 @@ function renderLesson() {
       <p class="lesson-romanization">${lessonEscape(item.romanized || item.ipa)}</p>
       <p>${lessonEscape(item.desc || 'Say the word aloud, then look away and try to remember it.')}</p>
       ${item.audio ? '<button class="ctrl-btn" id="lessonAudio">▶ Hear the letter name</button>' : ''}
-      <div class="lesson-footer"><button class="lesson-primary" onclick="advanceLesson()">${state.index === 5 ? 'Try what you learned' : 'Continue'} →</button></div>`;
+      `;
+    renderLessonActions(host, state.index === 5 ? 'Start practice' : 'Continue');
     if (item.audio) document.getElementById('lessonAudio').onclick = e => playLetterAudio(item, e.currentTarget);
   } else {
     const answer = lessonAnswer(item, task.reverse);
@@ -75,27 +78,54 @@ function renderLesson() {
     const options = [answer, ...[0,1,2].map(i => distractors[(offset + i) % distractors.length])];
     const rotation = (state.index + state.unit) % 4;
     options.push(...options.splice(0, rotation));
-    stage.innerHTML = `<p class="lesson-eyebrow">${state.index >= 12 ? 'One more try' : 'Recall'} · ${state.index + 1} of ${state.queue.length}</p>
+    stage.innerHTML = `<p class="lesson-eyebrow">${state.index >= 12 ? 'Retry' : `Recall · ${state.index + 1} of 12`}</p>
       <h1>${task.reverse ? 'Choose the Armenian' : item.type === 'letter' ? 'Which sound?' : 'What does this mean?'}</h1>
       <div class="lesson-question" ${task.reverse ? '' : 'lang="hy"'}>${lessonEscape(task.reverse ? lessonAnswer(item, false) : item.arm)}</div>
-      <div class="lesson-options">${options.map((a,i) => `<button class="lesson-option ${state.answered !== null && a === answer ? 'correct' : state.answered === a ? 'incorrect' : ''}" data-option="${i}" ${state.answered !== null ? 'disabled' : ''}>${lessonEscape(a)}</button>`).join('')}</div>
-      <div class="lesson-feedback" role="status">${state.answered !== null ? state.answered === answer ? 'Yes, that’s it.' : `The answer is ${lessonEscape(answer)}. You’ll try this again before finishing.` : 'Take your time. Mistakes are part of learning.'}</div>
-      ${state.answered !== null ? '<button class="lesson-primary" onclick="advanceLesson()">Continue →</button>' : ''}`;
-    stage.querySelectorAll('[data-option]').forEach(btn => btn.onclick = () => answerLesson(options[Number(btn.dataset.option)]));
+      <div class="lesson-options">${options.map((option, index) => `<button class="lesson-option" data-option="${index}" ${task.reverse ? 'lang="hy"' : ''}>${lessonEscape(option)}</button>`).join('')}</div>`;
+    renderLessonActions(host, state.index >= state.queue.length - 1 ? 'Finish lesson' : 'Continue', true);
+    stage.querySelectorAll('[data-option]').forEach((button, index) => {
+      button.onclick = () => answerLesson(options[index], answer);
+    });
+    if (state.answered !== null) showLessonFeedback(answer);
+
   }
 }
-function answerLesson(answer) {
+function renderLessonActions(host, label, checking = false) {
+  host.insertAdjacentHTML('beforeend', `<div class="guided-lesson-actions">
+    ${checking ? '<p id="lessonFeedback" class="lesson-feedback" role="status" aria-atomic="true"></p>' : ''}
+    <button id="lessonContinue" class="lesson-primary" onclick="advanceLesson()" ${checking ? 'disabled' : ''}>${label} →</button>
+  </div>`);
+}
+
+function showLessonFeedback(correctAnswer) {
+  const correct = lessonState.answered === correctAnswer;
+  document.querySelectorAll('#lessonStage [data-option]').forEach(button => {
+    button.disabled = true;
+    if (button.textContent === correctAnswer) button.classList.add('correct');
+    else if (button.textContent === lessonState.answered) button.classList.add('incorrect');
+  });
+  const feedback = document.getElementById('lessonFeedback');
+  feedback.classList.add(correct ? 'correct' : 'incorrect');
+  feedback.textContent = correct ? '✓ Correct' : `Correct answer: ${correctAnswer}. You’ll try again.`;
+  const next = document.getElementById('lessonContinue');
+  next.disabled = false;
+  next.textContent = lessonState.index === lessonState.queue.length - 1 ? 'Finish lesson →' : 'Continue →';
+}
+
+function answerLesson(answer, correctAnswer) {
   if (lessonState.answered !== null || lessonState.finished) return;
   const task = lessonState.queue[lessonState.index];
-  const item = lessonItems(lessonState.unit)[task.item];
   lessonState.answered = answer;
-  if (answer !== lessonAnswer(item, task.reverse)) {
+  if (answer !== correctAnswer) {
     if (!lessonState.mistakes.includes(task.item)) lessonState.mistakes.push(task.item);
     lessonState.queue.push({...task});
   }
   saveLesson();
-  renderLesson();
-  document.querySelector('#lessonStage .lesson-primary')?.focus({preventScroll:true});
+  const progress = document.querySelector('#lessonHost .lesson-progress');
+  progress.max = 6 + lessonState.queue.length;
+  progress.value = 7 + lessonState.index;
+  showLessonFeedback(correctAnswer);
+  document.getElementById('lessonContinue').focus();
 }
 function advanceLesson() {
   if (!lessonState || lessonState.finished || (lessonState.phase === 'practice' && lessonState.answered === null)) return;
@@ -113,5 +143,5 @@ function advanceLesson() {
   saveLesson();
   renderLesson();
   document.getElementById('lessonStage').focus({preventScroll:true});
-  document.getElementById('lessonHost').scrollIntoView({block:'start', behavior: prefersReducedMotion ? 'instant' : 'smooth'});
+  document.getElementById('lessonHost').scrollIntoView({block:'start', behavior:'instant'});
 }
